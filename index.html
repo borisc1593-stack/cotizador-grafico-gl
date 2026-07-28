@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0e1014">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cotizador Multiservicios Gráficos</title>
+<style>
+:root{
+  --bg:#0e1014; --panel:#161a21; --panel2:#1d222c; --line:#2a3140;
+  --text:#e8ecf3; --dim:#8b95a7;
+  --cyan:#22d3ee; --magenta:#f43f7a; --yellow:#facc15;
+  --ok:#34d399; --danger:#ef4444;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:15px; padding-bottom:84px;
+}
+header{
+  padding:18px 16px 12px; position:sticky; top:0; z-index:20;
+  background:linear-gradient(var(--bg) 75%, transparent);
+}
+.brand{display:flex; align-items:center; gap:10px}
+.cmyk{display:flex; gap:3px}
+.cmyk span{width:9px; height:22px; border-radius:3px}
+.cmyk span:nth-child(1){background:var(--cyan)}
+.cmyk span:nth-child(2){background:var(--magenta)}
+.cmyk span:nth-child(3){background:var(--yellow)}
+.cmyk span:nth-child(4){background:#4b5563}
+h1{font-size:19px; font-weight:800; letter-spacing:-.3px}
+.brand small{display:block; color:var(--dim); font-size:11.5px; font-weight:500; margin-top:1px}
+nav{
+  position:fixed; bottom:0; left:0; right:0; z-index:30;
+  display:flex; background:var(--panel); border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{
+  flex:1; background:none; border:none; color:var(--dim);
+  padding:12px 0 10px; font-size:11.5px; font-weight:600; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+nav button svg{width:22px;height:22px}
+nav button.active{color:var(--magenta)}
+main{padding:0 16px}
+.view{display:none}
+.view.active{display:block}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:12px}
+label{display:block; color:var(--dim); font-size:12px; font-weight:600; margin:10px 0 5px; text-transform:uppercase; letter-spacing:.4px}
+select,input[type=number],input[type=text],input[type=tel]{
+  width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+  color:var(--text); padding:12px; font-size:16px; outline:none;
+}
+select:focus,input:focus{border-color:var(--magenta)}
+.row{display:flex; gap:10px}
+.row>*{flex:1}
+/* Toggle tipo de precio */
+.mode{
+  display:flex; background:var(--panel2); border:1px solid var(--line);
+  border-radius:12px; padding:4px; margin-bottom:12px;
+}
+.mode button{
+  flex:1; border:none; border-radius:9px; padding:11px 0;
+  font-size:14px; font-weight:700; cursor:pointer;
+  background:none; color:var(--dim); transition:.15s;
+}
+.mode button.on-designer{background:var(--cyan); color:#062a31}
+.mode button.on-public{background:var(--magenta); color:#fff}
+/* Precio único */
+.bigprice{
+  border-radius:12px; padding:16px; text-align:center; margin-top:14px;
+  background:var(--panel2); border:1px solid var(--line);
+}
+.bigprice .tag{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; color:var(--dim)}
+.bigprice input{
+  width:100%; background:none; border:none; outline:none; text-align:center;
+  font-size:32px; font-weight:800; letter-spacing:-.5px; color:var(--text);
+  font-family:inherit; padding:0;
+}
+.bigprice .editnote{font-size:10.5px; color:var(--dim); margin-top:2px}
+.bigprice.designer{border-color:rgba(34,211,238,.4)}
+.bigprice.designer input{color:var(--cyan)}
+.bigprice.public{border-color:rgba(244,63,122,.4)}
+.bigprice.public input{color:var(--magenta)}
+.bigprice.manual{border-color:var(--yellow)}
+.bigprice.manual input{color:var(--yellow)}
+.hint{color:var(--dim); font-size:12px; margin-top:8px; text-align:center}
+.btn{
+  width:100%; border:none; border-radius:12px; padding:14px; font-size:15px;
+  font-weight:700; cursor:pointer; margin-top:12px;
+}
+.btn.primary{background:var(--magenta); color:#fff}
+.btn.ghost{background:var(--panel2); color:var(--text); border:1px solid var(--line)}
+.btn.wa{background:#25d366; color:#06281a; display:flex; align-items:center; justify-content:center; gap:8px}
+.btn:active{transform:scale(.98)}
+.item{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:12px 14px; margin-bottom:8px;
+}
+.item .info b{font-size:14px}
+.item .info small{display:block; color:var(--dim); font-size:12px; margin-top:2px}
+.item .amt{font-size:16px; font-weight:800; text-align:right}
+.item .del{background:none; border:none; color:var(--dim); font-size:20px; padding:4px 0 4px 12px; cursor:pointer}
+.totals{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-top:4px}
+.trow{display:flex; justify-content:space-between; padding:6px 0; font-size:17px; font-weight:800}
+.empty{text-align:center; color:var(--dim); padding:40px 20px; font-size:14px}
+.mat{
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:12px 10px 12px 6px; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.mat .matbody{flex:1; min-width:0}
+.reorder{display:flex; flex-direction:column; gap:4px}
+.reorder button{
+  background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+  border-radius:8px; width:34px; height:30px; font-size:13px; cursor:pointer;
+}
+.reorder button:active{color:var(--yellow); border-color:var(--yellow)}
+.reorder button:disabled{opacity:.25}
+.mat b{font-size:14px}
+.mat small{display:block; color:var(--dim); font-size:12px; margin-top:2px}
+.mat .mp{text-align:right; font-size:12.5px}
+.mat .mp .d{color:var(--cyan); font-weight:700}
+.mat .mp .p{color:var(--magenta); font-weight:700}
+.mat .mp small{font-size:10.5px}
+.modal{
+  display:none; position:fixed; inset:0; z-index:50;
+  background:rgba(0,0,0,.6); align-items:flex-end;
+}
+.modal.open{display:flex}
+.sheet{
+  background:var(--panel); width:100%; border-radius:20px 20px 0 0;
+  padding:20px 16px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto;
+}
+.sheet h2{font-size:17px; margin-bottom:4px}
+.sheet .sub{color:var(--dim); font-size:13px}
+.badge{
+  display:inline-block; font-size:11px; font-weight:700; padding:3px 9px;
+  border-radius:20px; background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+}
+.toast{
+  position:fixed; left:50%; bottom:100px; transform:translateX(-50%) translateY(20px);
+  background:var(--ok); color:#052e1c; font-weight:700; font-size:14px;
+  padding:10px 20px; border-radius:30px; opacity:0; transition:.25s; z-index:60; pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+/* ===== PDF / impresión ===== */
+#printArea{display:none}
+@media print{
+  body{background:#fff; color:#111; padding:0}
+  body>*:not(#printArea){display:none !important}
+  #printArea{display:block; font-family:Arial,Helvetica,sans-serif; padding:24px}
+  #printArea .ph{display:flex; align-items:center; gap:10px; border-bottom:3px solid #111; padding-bottom:12px; margin-bottom:6px}
+  #printArea .pcmyk{display:flex; gap:3px}
+  #printArea .pcmyk span{width:8px; height:26px; border-radius:2px}
+  #printArea .pcmyk span:nth-child(1){background:#00b7d8}
+  #printArea .pcmyk span:nth-child(2){background:#e6007e}
+  #printArea .pcmyk span:nth-child(3){background:#f5c400}
+  #printArea .pcmyk span:nth-child(4){background:#222}
+  #printArea h2{font-size:20px; margin:0}
+  #printArea .psub{color:#555; font-size:12px}
+  #printArea .pmeta{display:flex; justify-content:space-between; font-size:12px; color:#444; margin:10px 0 16px}
+  #printArea table{width:100%; border-collapse:collapse; font-size:13px}
+  #printArea th{text-align:left; background:#f0f0f0; padding:8px; border-bottom:2px solid #ccc}
+  #printArea th:last-child, #printArea td:last-child{text-align:right}
+  #printArea td{padding:8px; border-bottom:1px solid #e2e2e2}
+  #printArea .ptotal{display:flex; justify-content:flex-end; margin-top:14px}
+  #printArea .ptotal div{background:#111; color:#fff; padding:10px 18px; border-radius:6px; font-size:16px; font-weight:bold}
+  #printArea .pfoot{margin-top:30px; font-size:11px; color:#777; border-top:1px solid #ddd; padding-top:10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="cmyk"><span></span><span></span><span></span><span></span></div>
+    <div>
+      <h1 id="hdrName">Cotizador Multiservicios Gráficos</h1>
+      <small id="hdrLoc">Portoviejo · Ecuador</small>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ============ COTIZAR ============ -->
+<div class="view active" id="view-cotizar">
+
+  <div class="mode">
+    <button id="btnDesigner" onclick="setMode('designer')">Diseñador</button>
+    <button id="btnPublic" onclick="setMode('public')">Público final</button>
+  </div>
+
+  <div class="card">
+    <label>Material</label>
+    <select id="selMat"></select>
+
+    <div id="areaInputs">
+      <div class="row">
+        <div><label>Ancho (m)</label><input type="text" id="inW" inputmode="decimal" placeholder="Ej: 1.5"></div>
+        <div><label>Alto / largo (m)</label><input type="text" id="inH" inputmode="decimal" placeholder="Ej: 0.25"></div>
+      </div>
+    </div>
+
+    <label>Cantidad</label>
+    <input type="number" id="inQty" inputmode="numeric" value="1" min="1">
+
+    <label>Descripción (opcional)</label>
+    <input type="text" id="inNote" placeholder="Ej: Letrero para fachada, incluye instalación">
+
+    <div class="bigprice" id="bigPrice">
+      <div class="tag" id="priceTag">Precio</div>
+      <input type="text" id="priceVal" inputmode="decimal" value="0.00">
+      <div class="editnote">Toca el valor para dar otro precio</div>
+    </div>
+    <div class="hint" id="calcHint"></div>
+
+    <button class="btn primary" id="btnAddItem" onclick="addItem()">+ Agregar ítem</button>
+  </div>
+
+  <div id="quoteList"></div>
+  <div id="quoteTotals"></div>
+
+  <div class="card" id="sendCard" style="display:none">
+    <label>Cliente</label>
+    <input type="text" id="clientName" placeholder="Nombre del cliente o empresa">
+    <label>Cédula / RUC (opcional)</label>
+    <input type="text" id="clientRuc" inputmode="numeric" placeholder="1310000000">
+    <label>WhatsApp del cliente</label>
+    <input type="tel" id="waNumber" inputmode="tel" placeholder="0991234567">
+    <label>Código de personal <span style="color:var(--magenta)">*</span></label>
+    <input type="text" id="staffCode" placeholder="Ej: JP-01">
+    <button class="btn wa" onclick="shareWA()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.5 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1.1 2.2 1.4 2.5 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3 0 .1 0 .7-.2 1.3z"/></svg>
+      Enviar cotización
+    </button>
+    <button class="btn ghost" onclick="downloadPDF()">📄 Descargar PDF</button>
+    <button class="btn ghost" onclick="clearQuote()">Limpiar cotización</button>
+  </div>
+</div>
+
+<!-- ============ MATERIALES ============ -->
+<div class="view" id="view-materiales">
+  <button class="btn primary" onclick="openMatModal()">+ Nuevo material</button>
+  <div style="height:12px"></div>
+  <div id="matList"></div>
+
+  <div class="card" style="margin-top:16px">
+    <label style="margin-top:0">Datos de la empresa (para proforma)</label>
+    <input type="text" id="cfgName" placeholder="Nombre comercial">
+    <div class="row" style="margin-top:10px">
+      <div><input type="text" id="cfgLoc" placeholder="Ciudad · País"></div>
+      <div><input type="text" id="cfgRuc" placeholder="RUC / C.I."></div>
+    </div>
+    <input type="text" id="cfgAddr" placeholder="Dirección" style="margin-top:10px">
+    <div class="row" style="margin-top:10px">
+      <div><input type="tel" id="cfgPhone" placeholder="Teléfono"></div>
+      <div><input type="text" id="cfgEmail" placeholder="Email"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label style="margin-top:0">Respaldo de datos</label>
+    <button class="btn ghost" onclick="exportBackup()">⬇️ Exportar backup (JSON)</button>
+    <label for="importFile" class="btn ghost" style="display:block; text-align:center; margin-top:10px">⬆️ Importar backup</label>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(this)">
+  </div>
+</div>
+
+<!-- ============ HISTORIAL ============ -->
+<div class="view" id="view-historial">
+  <div id="histList"></div>
+</div>
+</main>
+
+<!-- Modal material -->
+<div class="modal" id="matModal" onclick="if(event.target===this)closeMatModal()">
+  <div class="sheet">
+    <h2 id="matModalTitle">Nuevo material</h2>
+    <p class="sub">Los precios son por m² o por unidad según el tipo.</p>
+    <label>Nombre</label>
+    <input type="text" id="mName" placeholder="Ej: Lona 13oz impresa">
+    <label>Se cobra por</label>
+    <select id="mUnit">
+      <option value="m2">Metro cuadrado (m²)</option>
+      <option value="unidad">Unidad / paquete</option>
+    </select>
+    <div class="row">
+      <div><label>Precio diseñador ($)</label><input type="text" id="mDesigner" inputmode="decimal" placeholder="0.00"></div>
+      <div><label>Precio público ($)</label><input type="text" id="mPublic" inputmode="decimal" placeholder="0.00"></div>
+    </div>
+    <div id="minWrap">
+      <label>Mínimo facturable (m²) — opcional</label>
+      <input type="text" id="mMin" inputmode="decimal" placeholder="Ej: 0.25">
+    </div>
+    <button class="btn primary" onclick="saveMat()">Guardar</button>
+    <button class="btn ghost" id="btnDeleteMat" style="display:none" onclick="deleteMat()">Eliminar material</button>
+    <button class="btn ghost" onclick="closeMatModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal detalle historial -->
+<div class="modal" id="histModal" onclick="if(event.target===this)closeHistModal()">
+  <div class="sheet">
+    <h2 id="histModalTitle">Proforma</h2>
+    <p class="sub" id="histModalSub"></p>
+    <div style="height:10px"></div>
+    <div id="histModalItems"></div>
+    <button class="btn primary" onclick="editHistRecord()">✏️ Editar esta cotización</button>
+    <button class="btn ghost" onclick="reprintHist()">📄 Reimprimir / PDF</button>
+    <button class="btn wa" onclick="resendHist()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.5 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1.1 2.2 1.4 2.5 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3 0 .1 0 .7-.2 1.3z"/></svg>
+      Reenviar por WhatsApp
+    </button>
+    <button class="btn ghost" onclick="deleteHist()">🗑️ Eliminar del historial</button>
+    <button class="btn ghost" onclick="closeHistModal()">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+// ================= DATA =================
+const LS_MATS='cotizador_mats_v3', LS_QUOTE='cotizador_quote_v3', LS_MODE='cotizador_mode_v3';
+const LS_HIST='cotizador_hist_v1', LS_IVA='cotizador_iva_v1', LS_CFG='cotizador_cfg_v1', LS_STAFF='cotizador_staff_v1';
+const DEFAULT_CFG={name:'Multiservicios Gráficos', loc:'Portoviejo · Ecuador', ruc:'', addr:'', phone:'', email:''};
+
+const DEFAULT_MATS=[
+  {id:1, name:'Lona 13oz impresa', unit:'m2', designer:6.00, public:10.00, min:0.5},
+  {id:2, name:'Vinil adhesivo impreso', unit:'m2', designer:8.00, public:14.00, min:0.25},
+  {id:3, name:'Vinil adhesivo + laminado', unit:'m2', designer:11.00, public:18.00, min:0.25},
+  {id:4, name:'Vinil microperforado', unit:'m2', designer:12.00, public:20.00, min:0.5},
+  {id:5, name:'Vinil transparente impreso', unit:'m2', designer:10.00, public:17.00, min:0.25},
+  {id:6, name:'Vinil de corte (rotulación)', unit:'m2', designer:9.00, public:16.00, min:0.25},
+  {id:7, name:'PVC / Sintra 3mm impreso', unit:'m2', designer:18.00, public:30.00, min:0.25},
+  {id:13, name:'PVC / Sintra 3mm laminado', unit:'m2', designer:21.00, public:34.00, min:0.25},
+  {id:8, name:'Acrílico 3mm (corte láser)', unit:'m2', designer:45.00, public:70.00, min:0.1},
+  {id:9, name:'MDF 3mm corte láser', unit:'m2', designer:15.00, public:25.00, min:0.1},
+  {id:10, name:'Roll-up banner 85x200 (completo)', unit:'unidad', designer:45.00, public:65.00, min:0},
+  {id:11, name:'Tarjetas de presentación (millar)', unit:'unidad', designer:18.00, public:30.00, min:0},
+  {id:12, name:'Volantes A5 full color (millar)', unit:'unidad', designer:35.00, public:55.00, min:0},
+];
+
+let mats = JSON.parse(localStorage.getItem(LS_MATS)||'null') || DEFAULT_MATS.slice();
+let quote = JSON.parse(localStorage.getItem(LS_QUOTE)||'[]');
+let mode = localStorage.getItem(LS_MODE) || 'public';
+let ivaOn = localStorage.getItem(LS_IVA)==='1';
+let cfg = Object.assign({}, DEFAULT_CFG, JSON.parse(localStorage.getItem(LS_CFG)||'null')||{});
+let editingId = null;
+let histOpenNum = null;
+
+function saveCfg(){
+  cfg = {
+    name: $('cfgName').value.trim() || DEFAULT_CFG.name,
+    loc: $('cfgLoc').value.trim() || DEFAULT_CFG.loc,
+    ruc: $('cfgRuc').value.trim(),
+    addr: $('cfgAddr').value.trim(),
+    phone: $('cfgPhone').value.trim(),
+    email: $('cfgEmail').value.trim()
+  };
+  localStorage.setItem(LS_CFG, JSON.stringify(cfg));
+  renderHeader();
+}
+function renderHeader(){
+  $('hdrName').textContent = cfg.name;
+  $('hdrLoc').textContent = cfg.loc;
+}
+function loadCfgForm(){
+  $('cfgName').value=cfg.name;
+  $('cfgLoc').value=cfg.loc;
+  $('cfgRuc').value=cfg.ruc;
+  $('cfgAddr').value=cfg.addr;
+  $('cfgPhone').value=cfg.phone;
+  $('cfgEmail').value=cfg.email;
+}
+
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+n.toFixed(2);
+const pf=v=>parseFloat(String(v).replace(',','.'))||0;
+const saveMats=()=>localStorage.setItem(LS_MATS,JSON.stringify(mats));
+const saveQuote=()=>localStorage.setItem(LS_QUOTE,JSON.stringify(quote));
+
+// ================= MODO DE PRECIO =================
+function setMode(m){
+  mode=m; manualPrice=false;
+  localStorage.setItem(LS_MODE,m);
+  $('btnDesigner').className = m==='designer' ? 'on-designer':'';
+  $('btnPublic').className = m==='public' ? 'on-public':'';
+  $('bigPrice').className = 'bigprice '+m;
+  $('priceTag').textContent = m==='designer' ? 'Precio diseñador':'Precio público sugerido';
+  calc(); renderQuote();
+}
+
+// ================= TABS =================
+function showView(v,btn){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  $('view-'+v).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ================= COTIZAR =================
+function renderSelect(){
+  $('selMat').innerHTML = mats.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  onMatChange();
+}
+function currentMat(){ return mats.find(m=>m.id==$('selMat').value); }
+
+function onMatChange(){
+  const m=currentMat(); if(!m) return;
+  $('areaInputs').style.display = m.unit==='m2' ? 'block':'none';
+  calc();
+}
+
+let manualPrice=false;
+let editItemIdx=null;
+
+function calc(){
+  const m=currentMat(); if(!m) return;
+  const qty=Math.max(1, pf($('inQty').value)||1);
+  const rate = mode==='designer' ? m.designer : m.public;
+  let total=0, d=0, p=0, hint='';
+  if(m.unit==='m2'){
+    const w=pf($('inW').value);
+    const h=pf($('inH').value);
+    let area=w*h;
+    if(area>0 && m.min && area<m.min){ area=m.min; hint=`Mínimo facturable: ${m.min} m² · `; }
+    total=area*rate*qty; d=area*m.designer*qty; p=area*m.public*qty;
+    hint+= (w*h)>0 ? `${(w*h*qty).toFixed(2)} m² × ${fmt(rate)} por m²` : 'Ingresa ancho y alto en metros';
+  }else{
+    total=rate*qty; d=m.designer*qty; p=m.public*qty;
+    hint=`${qty} × ${fmt(rate)} por unidad`;
+  }
+  if(manualPrice){
+    const mv=pf($('priceVal').value);
+    d=mv; p=mv;
+    hint='Precio manual';
+    $('bigPrice').className='bigprice manual';
+  }else{
+    $('priceVal').value=total.toFixed(2);
+    $('bigPrice').className='bigprice '+mode;
+  }
+  $('calcHint').textContent=hint;
+  return {total:(manualPrice?pf($('priceVal').value):total),d,p,qty,m};
+}
+
+function resetManual(){ manualPrice=false; calc(); }
+
+function addItem(){
+  const r=calc(); if(!r) return;
+  if(r.total<=0){ toast('Ingresa medidas válidas'); return; }
+  const m=r.m;
+  let desc = m.unit==='m2'
+    ? `${$('inW').value}×${$('inH').value} m × ${r.qty}`
+    : `× ${r.qty}`;
+  if(manualPrice) desc+=' · precio manual';
+  const note=$('inNote').value.trim();
+  const item = {matId:m.id, name:m.name, desc, note, d:r.d, p:r.p, w:$('inW').value, h:$('inH').value, qty:r.qty, manual:manualPrice};
+  if(editItemIdx!==null){
+    quote[editItemIdx]=item;
+    exitEditMode();
+    toast('Ítem actualizado ✓');
+  }else{
+    quote.push(item);
+    toast('Ítem agregado ✓');
+  }
+  saveQuote(); renderQuote();
+  manualPrice=false; $('inNote').value=''; calc();
+}
+
+function editItem(i){
+  const it = quote[i];
+  if(it.matId==null || !mats.find(m=>m.id===it.matId)){ toast('Este ítem no se puede editar'); return; }
+  editItemIdx = i;
+  $('selMat').value = it.matId;
+  onMatChange();
+  $('inW').value = it.w||''; $('inH').value = it.h||'';
+  $('inQty').value = it.qty || 1;
+  $('inNote').value = it.note || '';
+  manualPrice = !!it.manual;
+  calc();
+  if(manualPrice) $('priceVal').value = (mode==='designer'?it.d:it.p).toFixed(2);
+  enterEditMode();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function enterEditMode(){
+  $('btnAddItem').textContent = '✓ Guardar cambios';
+  if(!$('cancelEditBtn')){
+    const cancel=document.createElement('button');
+    cancel.id='cancelEditBtn'; cancel.className='btn ghost'; cancel.type='button';
+    cancel.textContent='Cancelar edición';
+    cancel.onclick=exitEditMode;
+    $('btnAddItem').insertAdjacentElement('afterend', cancel);
+  }
+}
+function exitEditMode(){
+  editItemIdx=null;
+  $('btnAddItem').textContent = '+ Agregar ítem';
+  const cancel=$('cancelEditBtn'); if(cancel) cancel.remove();
+  $('inW').value=''; $('inH').value=''; $('inQty').value=1; $('inNote').value='';
+  manualPrice=false; calc();
+}
+
+// Numeración de proforma
+const LS_COUNT='cotizador_count_v3', LS_QNUM='cotizador_qnum_v3';
+function proformaNum(){
+  let n=localStorage.getItem(LS_QNUM);
+  if(!n){
+    const c=(parseInt(localStorage.getItem(LS_COUNT))||0)+1;
+    localStorage.setItem(LS_COUNT,c);
+    n='PRF-'+String(c).padStart(4,'0');
+    localStorage.setItem(LS_QNUM,n);
+  }
+  return n;
+}
+
+function removeItem(i){ quote.splice(i,1); saveQuote(); renderQuote(); }
+function clearQuote(){ quote=[]; saveQuote(); localStorage.removeItem(LS_QNUM); renderQuote(); }
+
+function quoteTotal(){
+  const subtotal=quote.reduce((s,x)=>s+(mode==='designer'?x.d:x.p),0);
+  const iva = ivaOn ? subtotal*0.15 : 0;
+  return {subtotal, iva, total:subtotal+iva};
+}
+
+function toggleIva(){ ivaOn=!ivaOn; localStorage.setItem(LS_IVA, ivaOn?'1':'0'); renderQuote(); }
+
+function renderQuote(){
+  const color = mode==='designer' ? 'var(--cyan)':'var(--magenta)';
+  if(!quote.length){
+    $('quoteList').innerHTML='<div class="empty">Agrega ítems para armar la cotización</div>';
+    $('quoteTotals').innerHTML='';
+    $('sendCard').style.display='none';
+    return;
+  }
+  $('quoteList').innerHTML = quote.map((it,i)=>`
+    <div class="item" onclick="editItem(${i})" style="cursor:pointer">
+      <div class="info"><b>${it.name}</b><small>${it.desc}${it.note?` — ${it.note}`:''}</small></div>
+      <div class="amt" style="color:${color}">${fmt(mode==='designer'?it.d:it.p)}</div>
+      <button class="del" onclick="event.stopPropagation(); removeItem(${i})">×</button>
+    </div>`).join('');
+  const {subtotal, iva, total} = quoteTotal();
+  $('quoteTotals').innerHTML=`
+    <div class="totals">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; font-weight:600; padding:2px 0 10px">
+        <input type="checkbox" id="chkIva" ${ivaOn?'checked':''} onchange="toggleIva()" style="width:18px;height:18px">
+        Incluir IVA 15%
+      </label>
+      ${ivaOn?`<div class="trow" style="font-size:14px; font-weight:600; color:var(--dim)"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+      <div class="trow" style="font-size:14px; font-weight:600; color:var(--dim)"><span>IVA 15%</span><span>${fmt(iva)}</span></div>`:''}
+      <div class="trow" style="color:${color}">
+        <span>Total ${mode==='designer'?'diseñador':'público'}</span><b>${fmt(total)}</b>
+      </div>
+    </div>`;
+  $('sendCard').style.display='block';
+}
+
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'}); }
+
+function requireStaffCode(){
+  const staff = $('staffCode').value.trim();
+  if(!staff){ toast('Ingresa el código de personal'); $('staffCode').focus(); return null; }
+  localStorage.setItem(LS_STAFF, staff);
+  return staff;
+}
+
+function currentRecord(staff){
+  const {subtotal, iva, total} = quoteTotal();
+  return {
+    num: proformaNum(),
+    cli: $('clientName').value.trim() || 'Consumidor final',
+    ruc: $('clientRuc').value.trim(),
+    wa: $('waNumber').value.trim(),
+    staff,
+    mode, items: quote.slice(), ivaOn, subtotal, iva, total,
+    date: Date.now()
+  };
+}
+
+function saveHistory(rec){
+  let hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  const idx = hist.findIndex(h=>h.num===rec.num);
+  if(idx>=0) hist[idx]=rec; else hist.unshift(rec);
+  localStorage.setItem(LS_HIST, JSON.stringify(hist));
+  renderHistorial();
+}
+
+function renderPrint(rec){
+  const label = rec.mode==='designer' ? 'Precio diseñador' : 'Precio público';
+  const empLines = [cfg.ruc?`RUC: ${cfg.ruc}`:'', cfg.addr||'', cfg.phone?`Tel: ${cfg.phone}`:'', cfg.email||''].filter(Boolean).join(' · ');
+  $('printArea').innerHTML=`
+    <div class="ph">
+      <div class="pcmyk"><span></span><span></span><span></span><span></span></div>
+      <div>
+        <h2>${cfg.name}</h2>
+        <div class="psub">${cfg.loc}${empLines?' · '+empLines:''}</div>
+      </div>
+    </div>
+    <div class="pmeta">
+      <span><b>PROFORMA ${rec.num}</b> — ${label}</span>
+      <span>Fecha: ${fmtDate(rec.date)}</span>
+    </div>
+    <div class="pmeta" style="margin-top:-8px">
+      <span>Cliente: <b>${rec.cli}</b>${rec.ruc?` · C.I./RUC: ${rec.ruc}`:''}${rec.wa?` · Tel: ${rec.wa}`:''}</span>
+    </div>
+    <table>
+      <tr><th>Descripción</th><th>Detalle</th><th>Valor</th></tr>
+      ${rec.items.map(it=>`<tr><td>${it.name}${it.note?`<br><span style="color:#666;font-size:11px">${it.note}</span>`:''}</td><td>${it.desc}</td><td>${fmt(rec.mode==='designer'?it.d:it.p)}</td></tr>`).join('')}
+    </table>
+    ${rec.ivaOn?`<div class="pmeta" style="margin-top:14px"><span>Subtotal</span><span>${fmt(rec.subtotal)}</span></div>
+    <div class="pmeta" style="margin-top:-8px"><span>IVA 15%</span><span>${fmt(rec.iva)}</span></div>`:''}
+    <div class="ptotal"><div>TOTAL: ${fmt(rec.total)}</div></div>
+    <div class="pfoot">Proforma válida por 15 días. Precios sujetos a cambio según medidas finales y arte aprobado. Este documento no constituye factura.${rec.staff?`<br>Atendido por: ${rec.staff}`:''}</div>`;
+  window.print();
+}
+
+function buildWaMsg(rec){
+  const label = rec.mode==='designer' ? 'Precio diseñador' : 'Precio público';
+  let msg=`*PROFORMA ${rec.num} — ${cfg.name}*\n_${cfg.loc}${cfg.ruc?` · RUC: ${cfg.ruc}`:''}${cfg.phone?` · Tel: ${cfg.phone}`:''}_\n_${label}_\n`;
+  msg+=`Cliente: ${rec.cli}${rec.ruc?` · C.I./RUC: ${rec.ruc}`:''}${rec.wa?` · Tel: ${rec.wa}`:''}\n\n`;
+  rec.items.forEach(it=>{
+    msg+=`▪ ${it.name} (${it.desc})${it.note?`\n   ${it.note}`:''} — ${fmt(rec.mode==='designer'?it.d:it.p)}\n`;
+  });
+  if(rec.ivaOn){ msg+=`\nSubtotal: ${fmt(rec.subtotal)}\nIVA 15%: ${fmt(rec.iva)}`; }
+  msg+=`\n*TOTAL: ${fmt(rec.total)}*\n_Válida por 15 días_${rec.staff?`\nAtendido por: ${rec.staff}`:''}`;
+  return msg;
+}
+
+function downloadPDF(){
+  if(!quote.length){ toast('Agrega ítems primero'); return; }
+  const staff = requireStaffCode(); if(!staff) return;
+  const rec = currentRecord(staff);
+  saveHistory(rec);
+  renderPrint(rec);
+}
+
+function shareWA(){
+  let num = $('waNumber').value.replace(/[^0-9]/g,'');
+  if(!num){ toast('Escribe el número de WhatsApp'); return; }
+  const staff = requireStaffCode(); if(!staff) return;
+  if(num.startsWith('0')) num='593'+num.slice(1);      // 099... -> 59399...
+  else if(num.length<=9) num='593'+num;                 // 99... -> 59399...
+  const rec = currentRecord(staff);
+  saveHistory(rec);
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(buildWaMsg(rec)),'_blank');
+}
+
+// ================= HISTORIAL =================
+function renderHistorial(){
+  const hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  if(!hist.length){
+    $('histList').innerHTML='<div class="empty">Aún no hay cotizaciones guardadas.<br>Se guardan solas al descargar el PDF o enviar por WhatsApp.</div>';
+    return;
+  }
+  $('histList').innerHTML = hist.map(h=>`
+    <div class="item" onclick="openHistDetail('${h.num}')" style="cursor:pointer">
+      <div class="info"><b>${h.num} — ${h.cli}</b><small>${fmtDate(h.date)} · ${h.mode==='designer'?'Diseñador':'Público'}${h.staff?` · ${h.staff}`:''}</small></div>
+      <div class="amt" style="color:${h.mode==='designer'?'var(--cyan)':'var(--magenta)'}">${fmt(h.total)}</div>
+    </div>`).join('');
+}
+
+function openHistDetail(num){
+  const hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  const h = hist.find(x=>x.num===num); if(!h) return;
+  histOpenNum = num;
+  $('histModalTitle').textContent = `${h.num} — ${h.cli}`;
+  $('histModalSub').textContent = `${fmtDate(h.date)} · ${h.mode==='designer'?'Precio diseñador':'Precio público'}${h.staff?` · Personal: ${h.staff}`:''}`;
+  const color = h.mode==='designer' ? 'var(--cyan)':'var(--magenta)';
+  $('histModalItems').innerHTML = h.items.map(it=>`
+    <div class="item"><div class="info"><b>${it.name}</b><small>${it.desc}${it.note?` — ${it.note}`:''}</small></div>
+    <div class="amt" style="color:${color}">${fmt(h.mode==='designer'?it.d:it.p)}</div></div>`).join('')
+    + (h.ivaOn?`<div class="trow" style="font-size:14px; color:var(--dim)"><span>Subtotal</span><span>${fmt(h.subtotal)}</span></div>
+      <div class="trow" style="font-size:14px; color:var(--dim)"><span>IVA 15%</span><span>${fmt(h.iva)}</span></div>`:'')
+    + `<div class="trow" style="color:${color}"><span>Total</span><b>${fmt(h.total)}</b></div>`;
+  $('histModal').classList.add('open');
+}
+function closeHistModal(){ $('histModal').classList.remove('open'); histOpenNum=null; }
+
+function editHistRecord(){
+  const hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  const h = hist.find(x=>x.num===histOpenNum); if(!h) return;
+  quote = h.items.map(it=>Object.assign({}, it));
+  saveQuote();
+  mode = h.mode; localStorage.setItem(LS_MODE, mode);
+  ivaOn = h.ivaOn; localStorage.setItem(LS_IVA, ivaOn?'1':'0');
+  localStorage.setItem(LS_QNUM, h.num);
+  $('clientName').value = h.cli==='Consumidor final' ? '' : h.cli;
+  $('clientRuc').value = h.ruc||'';
+  $('waNumber').value = h.wa||'';
+  $('staffCode').value = h.staff||localStorage.getItem(LS_STAFF)||'';
+  closeHistModal();
+  exitEditMode();
+  setMode(mode);
+  showView('cotizar', document.querySelectorAll('nav button')[0]);
+  toast('Cotización cargada — sigue editando ✓');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function reprintHist(){
+  const hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  const h = hist.find(x=>x.num===histOpenNum); if(!h) return;
+  renderPrint(h);
+}
+function resendHist(){
+  const hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  const h = hist.find(x=>x.num===histOpenNum); if(!h) return;
+  let num=(h.wa||'').replace(/[^0-9]/g,'');
+  if(!num){ toast('Esta cotización no tiene WhatsApp guardado'); return; }
+  if(num.startsWith('0')) num='593'+num.slice(1); else if(num.length<=9) num='593'+num;
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(buildWaMsg(h)),'_blank');
+}
+function deleteHist(){
+  if(!confirm('¿Eliminar esta cotización del historial?')) return;
+  let hist = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+  hist = hist.filter(x=>x.num!==histOpenNum);
+  localStorage.setItem(LS_HIST, JSON.stringify(hist));
+  closeHistModal(); renderHistorial();
+}
+
+// ================= BACKUP =================
+function exportBackup(){
+  const data = {mats, hist: JSON.parse(localStorage.getItem(LS_HIST)||'[]'), exported: new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cotizador-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  toast('Backup descargado ✓');
+}
+function importBackup(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!confirm('Esto reemplazará tus materiales e historial actuales. ¿Continuar?')) return;
+      if(data.mats){ mats=data.mats; saveMats(); renderMats(); renderSelect(); }
+      if(data.hist){ localStorage.setItem(LS_HIST, JSON.stringify(data.hist)); renderHistorial(); }
+      toast('Backup importado ✓');
+    }catch(err){ toast('Archivo inválido'); }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ================= MATERIALES =================
+function renderMats(){
+  $('matList').innerHTML = mats.map((m,i)=>`
+    <div class="mat">
+      <div class="reorder">
+        <button onclick="moveMat(${i},-1)" ${i===0?'disabled':''}>▲</button>
+        <button onclick="moveMat(${i},1)" ${i===mats.length-1?'disabled':''}>▼</button>
+      </div>
+      <div class="matbody" onclick="openMatModal(${m.id})">
+        <b>${m.name}</b>
+        <small><span class="badge">${m.unit==='m2'?'por m²':'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}</small>
+      </div>
+      <div class="mp" onclick="openMatModal(${m.id})">
+        <div class="d">${fmt(m.designer)}</div>
+        <div class="p">${fmt(m.public)}</div>
+        <small style="color:var(--dim)">dis. / púb.</small>
+      </div>
+    </div>`).join('');
+}
+
+function moveMat(i,dir){
+  const j=i+dir;
+  if(j<0||j>=mats.length) return;
+  [mats[i],mats[j]]=[mats[j],mats[i]];
+  saveMats(); renderMats(); renderSelect();
+}
+
+function openMatModal(id){
+  editingId = id||null;
+  $('matModalTitle').textContent = id?'Editar material':'Nuevo material';
+  $('btnDeleteMat').style.display = id?'block':'none';
+  if(id){
+    const m=mats.find(x=>x.id===id);
+    $('mName').value=m.name; $('mUnit').value=m.unit;
+    $('mDesigner').value=m.designer; $('mPublic').value=m.public;
+    $('mMin').value=m.min||'';
+  }else{
+    $('mName').value=''; $('mUnit').value='m2';
+    $('mDesigner').value=''; $('mPublic').value=''; $('mMin').value='';
+  }
+  onUnitChange();
+  $('matModal').classList.add('open');
+}
+function closeMatModal(){ $('matModal').classList.remove('open'); }
+function onUnitChange(){ $('minWrap').style.display = $('mUnit').value==='m2'?'block':'none'; }
+
+function saveMat(){
+  const name=$('mName').value.trim();
+  const designer=pf($('mDesigner').value);
+  const pub=pf($('mPublic').value);
+  if(!name||designer<=0||pub<=0){ toast('Completa nombre y precios'); return; }
+  const data={
+    name, unit:$('mUnit').value, designer, public:pub,
+    min: $('mUnit').value==='m2' ? pf($('mMin').value) : 0
+  };
+  if(editingId){
+    Object.assign(mats.find(x=>x.id===editingId), data);
+  }else{
+    data.id = Date.now();
+    mats.push(data);
+  }
+  saveMats(); renderMats(); renderSelect(); closeMatModal();
+  toast('Guardado ✓');
+}
+
+function deleteMat(){
+  if(!confirm('¿Eliminar este material?')) return;
+  mats = mats.filter(x=>x.id!==editingId);
+  saveMats(); renderMats(); renderSelect(); closeMatModal();
+}
+
+// ================= UI =================
+let toastTimer;
+function toast(t){
+  const el=$('toast'); el.textContent=t; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+$('selMat').addEventListener('change',()=>{manualPrice=false; onMatChange();});
+['inW','inH','inQty'].forEach(id=>$(id).addEventListener('input',resetManual));
+$('priceVal').addEventListener('input',()=>{manualPrice=true; calc();});
+$('mUnit').addEventListener('change',onUnitChange);
+['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail'].forEach(id=>$(id).addEventListener('change',saveCfg));
+
+renderSelect(); setMode(mode); renderMats(); renderHistorial(); loadCfgForm(); renderHeader();
+$('staffCode').value = localStorage.getItem(LS_STAFF)||'';
+</script>
+
+<nav>
+  <button class="active" onclick="showView('cotizar',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4"/></svg>
+    Cotizar
+  </button>
+  <button onclick="showView('materiales',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V21H3V8M1 3h22v5H1zM10 12h4"/></svg>
+    Materiales
+  </button>
+  <button onclick="showView('historial',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+    Historial
+  </button>
+</nav>
+
+</body>
+</html>
