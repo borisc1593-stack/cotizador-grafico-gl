@@ -1,0 +1,67 @@
+# Cotizador Multiservicios Gráficos — Gráficas Liz
+
+App de cotización para un negocio de servicios gráficos (Gráficas Liz, Portoviejo, Ecuador). Single-file vanilla JS (`index.html`), todo en `localStorage`, sin backend. Repo: `borisc1593-stack/cotizador-grafico-gl`.
+
+## Identidad de marca
+
+- Logo: `logo-graficas-liz.png` (ya en el repo, fondo transparente). Usado en el header de la app y en el encabezado de la proforma impresa.
+- Colores del logo: cian, magenta, amarillo (estilo CMYK) — ya reflejados en las variables CSS `--cyan`/`--magenta`/`--yellow`.
+- Nunca reemplazar este logo por uno genérico ni quitarlo del header/proforma sin que el usuario lo pida.
+
+## Formato de proforma
+
+El formato de la proforma impresa/PDF debe replicar el de las proformas reales del negocio (ejemplo de referencia: proforma para Comercial Silva, `PR-2026-0914-A`, enviada 2026-09-14). Estructura:
+
+1. Header: logo a la izquierda, título "PROFORMA" + N° Ref + Fecha a la derecha.
+2. Barra divisoria azul marino.
+3. Sección "INFORMACIÓN DEL CLIENTE Y PROYECTO": caja con cliente/concepto a la izquierda, área total/alto uniforme/cantidad a la derecha.
+4. Sección "DESGLOSE DE MEDIDAS Y ESPECIFICACIONES": tabla agrupada por material, columnas CANT./ITEM/ANCHO/ALTO/ÁREA.
+5. Sección "PRESUPUESTO / COTIZACIÓN": tabla ÁREA·CANT./DESCRIPCIÓN/P.UNIT./SUBTOTAL + totales (subtotal, IVA 15%, TOTAL en caja azul marino).
+6. Sección "TÉRMINOS Y CONDICIONES": validez de oferta, forma de pago, alcance, medidas.
+7. Pie: "Gracias por su preferencia · Gráficas Liz".
+
+N° de referencia: formato `PR-AAAA-MMDD-Letra` (letra incrementa por cada proforma emitida ese mismo día: A, B, C...).
+
+Implementado 2026-09-16 en `renderPrint()` + CSS `@media print`. No revertir a un formato de texto plano simple — este es el formato real que el negocio usa y envía a clientes.
+
+## Módulo: Impresión UV sobre PVC (cama plana)
+
+La impresora UV es de cama plana. El cobro es por área de la plancha y es proporcional: si se usa media cama, se cobra la mitad.
+
+### Parámetros (editables en la UI, NO hardcodear)
+- `anchoCama` = 90 cm
+- `altoCama` = 60 cm
+- `precioCama` = 30.00 (USD, precio final al cliente)
+
+Estos tres valores viven en el material del catálogo (unit `cama`): `anchoCama`/`altoCama` son campos propios del material, y `precioCama` reutiliza los campos existentes `designer`/`public` del material (precio de la cama completa en cada nivel).
+
+### Fórmula
+```
+areaCama   = anchoCama * altoCama            // 5400 cm² con los valores por defecto
+divisor    = areaCama / precioCama           // 180 cm² por dólar
+precioPza  = (anchoPieza * altoPieza) / divisor
+subtotal   = precioPza * cantidad
+```
+Equivale a $55.56/m² con los valores por defecto. Si cambia `precioCama`, el divisor se recalcula solo (no cachear el divisor).
+
+### Campos del ítem (en la pantalla Cotizar, cuando el material seleccionado es tipo `cama`)
+- ancho (cm), alto (cm), cantidad
+- checkbox "Imprimir ambos lados" → multiplica cantidad × 2 para el cálculo
+- campo opcional "Cobro mínimo" (default 0): si `precioPza` calculado es menor, se cobra el mínimo en su lugar
+
+### Salidas a mostrar
+- Precio unitario por pieza (2 decimales)
+- Subtotal del ítem
+- Referencia: cuántas piezas entran por cama (`floor(anchoCama/anchoPieza) * floor(altoCama/altoPieza)`) y % de aprovechamiento de esa cama completa
+
+### Casos de prueba (con anchoCama=90, altoCama=60, precioCama=30.00)
+| Pieza | Precio esperado |
+|---|---|
+| 90 × 60 | $30.00 (cama completa) |
+| 90 × 30 | $15.00 (media cama) |
+| 55 × 56 | $17.11 |
+| 55 × 55 | $16.81 |
+| 28 × 29 | $4.51 |
+| 56 × 28 | $8.71 |
+
+Implementado 2026-09-16: nuevo `unit: 'cama'` en el modelo de materiales, junto a los ya existentes `m2` y `unidad`. Cada ítem de cotización guarda su propio `unit` (no solo `matId`) para que el desglose/impresión sigan siendo correctos aunque el material se edite o borre después.

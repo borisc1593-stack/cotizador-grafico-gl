@@ -28,12 +28,7 @@ header{
   background:linear-gradient(var(--bg) 75%, transparent);
 }
 .brand{display:flex; align-items:center; gap:10px}
-.cmyk{display:flex; gap:3px}
-.cmyk span{width:9px; height:22px; border-radius:3px}
-.cmyk span:nth-child(1){background:var(--cyan)}
-.cmyk span:nth-child(2){background:var(--magenta)}
-.cmyk span:nth-child(3){background:var(--yellow)}
-.cmyk span:nth-child(4){background:#4b5563}
+.brandlogo{height:36px; width:auto; display:block}
 h1{font-size:19px; font-weight:800; letter-spacing:-.3px}
 .brand small{display:block; color:var(--dim); font-size:11.5px; font-weight:500; margin-top:1px}
 nav{
@@ -152,29 +147,47 @@ select:focus,input:focus{border-color:var(--magenta)}
   white-space:nowrap;
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
-/* ===== PDF / impresión ===== */
+/* ===== PDF / impresión — formato proforma Gráficas Liz ===== */
 #printArea{display:none}
 @media print{
-  body{background:#fff; color:#111; padding:0}
+  body{background:#fff; color:#1a1a1a; padding:0}
   body>*:not(#printArea){display:none !important}
-  #printArea{display:block; font-family:Arial,Helvetica,sans-serif; padding:24px}
-  #printArea .ph{display:flex; align-items:center; gap:10px; border-bottom:3px solid #111; padding-bottom:12px; margin-bottom:6px}
-  #printArea .pcmyk{display:flex; gap:3px}
-  #printArea .pcmyk span{width:8px; height:26px; border-radius:2px}
-  #printArea .pcmyk span:nth-child(1){background:#00b7d8}
-  #printArea .pcmyk span:nth-child(2){background:#e6007e}
-  #printArea .pcmyk span:nth-child(3){background:#f5c400}
-  #printArea .pcmyk span:nth-child(4){background:#222}
-  #printArea h2{font-size:20px; margin:0}
-  #printArea .psub{color:#555; font-size:12px}
-  #printArea .pmeta{display:flex; justify-content:space-between; font-size:12px; color:#444; margin:10px 0 16px}
-  #printArea table{width:100%; border-collapse:collapse; font-size:13px}
-  #printArea th{text-align:left; background:#f0f0f0; padding:8px; border-bottom:2px solid #ccc}
+  #printArea{display:block; font-family:Arial,Helvetica,sans-serif; padding:26px; font-size:12.5px}
+
+  #printArea .ph2{display:flex; align-items:center; justify-content:space-between; gap:14px}
+  #printArea .plogo{height:52px; width:auto}
+  #printArea .ptitleblock{text-align:right}
+  #printArea .ptitleblock h1{font-size:26px; color:#1a3660; letter-spacing:.5px; margin:0 0 4px}
+  #printArea .pref{font-size:12px; color:#333}
+  #printArea .pdivider{height:3px; background:#1a3660; margin:12px 0 16px}
+
+  #printArea .psectitle{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#1a3660; margin:18px 0 8px; text-transform:uppercase; letter-spacing:.3px}
+  #printArea .pbar{width:5px; height:15px; background:#1a3660; display:inline-block}
+
+  #printArea .pinfobox{display:flex; gap:18px; background:#f4f6f9; border:1px solid #dde3ec; border-radius:6px; padding:12px 16px}
+  #printArea .pinfocol{flex:1.4}
+  #printArea .pinfocol-r{flex:1; border-left:1px solid #dde3ec; padding-left:16px}
+  #printArea .pinfo-row{font-size:12px; margin:4px 0}
+  #printArea .pinfo-label{color:#5a6472; font-weight:700}
+
+  #printArea table{width:100%; border-collapse:collapse; font-size:12px; margin-bottom:4px}
+  #printArea th{text-align:left; background:#1a3660; color:#fff; padding:7px 8px; font-size:11px; text-transform:uppercase; letter-spacing:.3px}
   #printArea th:last-child, #printArea td:last-child{text-align:right}
-  #printArea td{padding:8px; border-bottom:1px solid #e2e2e2}
-  #printArea .ptotal{display:flex; justify-content:flex-end; margin-top:14px}
-  #printArea .ptotal div{background:#111; color:#fff; padding:10px 18px; border-radius:6px; font-size:16px; font-weight:bold}
-  #printArea .pfoot{margin-top:30px; font-size:11px; color:#777; border-top:1px solid #ddd; padding-top:10px}
+  #printArea td{padding:7px 8px; border-bottom:1px solid #e2e6ec; vertical-align:top}
+  #printArea .pmedtable td:nth-child(3), #printArea .pmedtable td:nth-child(4){text-align:right}
+  #printArea .pgroup td{background:#eef1f5; font-weight:700; font-size:10.5px; color:#33445a; text-align:left; letter-spacing:.3px}
+  #printArea .pquotetable ul{margin:4px 0 0 16px; padding:0; color:#444}
+  #printArea .pquotetable li{margin:2px 0}
+  #printArea .pareacell{font-weight:700; white-space:nowrap}
+  #printArea .pareacell small{font-weight:400; color:#777}
+
+  #printArea .ptotalsbox{width:260px; margin:6px 0 0 auto}
+  #printArea .ptrow{display:flex; justify-content:space-between; font-size:12.5px; color:#444; padding:3px 4px}
+  #printArea .ptotal2{display:flex; justify-content:space-between; background:#1a3660; color:#fff; font-size:15px; font-weight:800; padding:9px 12px; border-radius:5px; margin-top:4px}
+
+  #printArea .pterms{margin:0 0 0 18px; padding:0; font-size:11px; color:#444}
+  #printArea .pterms li{margin:3px 0}
+  #printArea .pfoot2{text-align:center; margin-top:24px; font-size:11px; color:#888; border-top:1px solid #e2e6ec; padding-top:10px}
 }
 </style>
 </head>
@@ -182,7 +195,7 @@ select:focus,input:focus{border-color:var(--magenta)}
 
 <header>
   <div class="brand">
-    <div class="cmyk"><span></span><span></span><span></span><span></span></div>
+    <img src="logo-graficas-liz.png" alt="Gráficas Liz" class="brandlogo">
     <div>
       <h1 id="hdrName">Cotizador Multiservicios Gráficos</h1>
       <small id="hdrLoc">Portoviejo · Ecuador</small>
@@ -210,6 +223,19 @@ select:focus,input:focus{border-color:var(--magenta)}
       </div>
     </div>
 
+    <div id="camaInputs" style="display:none">
+      <div class="row">
+        <div><label>Ancho de pieza (cm)</label><input type="text" id="inCamaW" inputmode="decimal" placeholder="Ej: 55"></div>
+        <div><label>Alto de pieza (cm)</label><input type="text" id="inCamaH" inputmode="decimal" placeholder="Ej: 56"></div>
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px; text-transform:none; color:var(--text); font-size:14px; font-weight:600">
+        <input type="checkbox" id="inCamaBoth" style="width:18px;height:18px">
+        Imprimir ambos lados (× 2)
+      </label>
+      <label>Cobro mínimo por pieza ($) — opcional</label>
+      <input type="text" id="inCamaMin" inputmode="decimal" placeholder="Ej: 3.00">
+    </div>
+
     <label>Cantidad</label>
     <input type="number" id="inQty" inputmode="numeric" value="1" min="1">
 
@@ -232,6 +258,8 @@ select:focus,input:focus{border-color:var(--magenta)}
   <div class="card" id="sendCard" style="display:none">
     <label>Cliente</label>
     <input type="text" id="clientName" placeholder="Nombre del cliente o empresa">
+    <label>Concepto del proyecto (opcional)</label>
+    <input type="text" id="clientConcept" placeholder="Ej: Elaboración e instalación de publicidad impresa">
     <label>Cédula / RUC (opcional)</label>
     <input type="text" id="clientRuc" inputmode="numeric" placeholder="1310000000">
     <label>WhatsApp del cliente</label>
@@ -292,17 +320,24 @@ select:focus,input:focus{border-color:var(--magenta)}
 <div class="modal" id="matModal" onclick="if(event.target===this)closeMatModal()">
   <div class="sheet">
     <h2 id="matModalTitle">Nuevo material</h2>
-    <p class="sub">Los precios son por m² o por unidad según el tipo.</p>
+    <p class="sub">Los precios son por m², por unidad, o por cama completa (impresión UV) según el tipo.</p>
     <label>Nombre</label>
     <input type="text" id="mName" placeholder="Ej: Lona 13oz impresa">
     <label>Se cobra por</label>
     <select id="mUnit">
       <option value="m2">Metro cuadrado (m²)</option>
       <option value="unidad">Unidad / paquete</option>
+      <option value="cama">Impresión UV cama plana (por plancha)</option>
     </select>
+    <div id="camaDimsWrap">
+      <div class="row">
+        <div><label>Ancho de cama (cm)</label><input type="text" id="mCamaW" inputmode="decimal" placeholder="Ej: 90"></div>
+        <div><label>Alto de cama (cm)</label><input type="text" id="mCamaH" inputmode="decimal" placeholder="Ej: 60"></div>
+      </div>
+    </div>
     <div class="row">
-      <div><label>Precio diseñador ($)</label><input type="text" id="mDesigner" inputmode="decimal" placeholder="0.00"></div>
-      <div><label>Precio público ($)</label><input type="text" id="mPublic" inputmode="decimal" placeholder="0.00"></div>
+      <div><label id="mDesignerLabel">Precio diseñador ($)</label><input type="text" id="mDesigner" inputmode="decimal" placeholder="0.00"></div>
+      <div><label id="mPublicLabel">Precio público ($)</label><input type="text" id="mPublic" inputmode="decimal" placeholder="0.00"></div>
     </div>
     <div id="minWrap">
       <label>Mínimo facturable (m²) — opcional</label>
@@ -367,9 +402,15 @@ const DEFAULT_MATS=[
   {id:10, name:'Roll-up banner 85x200 (completo)', unit:'unidad', designer:45.00, public:65.00, min:0},
   {id:11, name:'Tarjetas de presentación (millar)', unit:'unidad', designer:18.00, public:30.00, min:0},
   {id:12, name:'Volantes A5 full color (millar)', unit:'unidad', designer:35.00, public:55.00, min:0},
+  {id:14, name:'Impresión UV sobre PVC (cama plana)', unit:'cama', designer:30.00, public:30.00, anchoCama:90, altoCama:60},
 ];
 
 let mats = JSON.parse(localStorage.getItem(LS_MATS)||'null') || DEFAULT_MATS.slice();
+// Migración: instalaciones ya existentes (con sus propios materiales guardados) también reciben el nuevo módulo de cama plana
+if(!mats.some(m=>m.unit==='cama')){
+  mats.push(Object.assign({}, DEFAULT_MATS.find(m=>m.unit==='cama'), {id:Date.now()}));
+  localStorage.setItem(LS_MATS, JSON.stringify(mats));
+}
 let quote = JSON.parse(localStorage.getItem(LS_QUOTE)||'[]');
 let mode = localStorage.getItem(LS_MODE) || 'public';
 let ivaOn = localStorage.getItem(LS_IVA)==='1';
@@ -470,6 +511,7 @@ function currentMat(){ return mats.find(m=>m.id==$('selMat').value); }
 function onMatChange(){
   const m=currentMat(); if(!m) return;
   $('areaInputs').style.display = m.unit==='m2' ? 'block':'none';
+  $('camaInputs').style.display = m.unit==='cama' ? 'block':'none';
   calc();
 }
 
@@ -488,6 +530,26 @@ function calc(){
     if(area>0 && m.min && area<m.min){ area=m.min; hint=`Mínimo facturable: ${m.min} m² · `; }
     total=area*rate*qty; d=area*m.designer*qty; p=area*m.public*qty;
     hint+= (w*h)>0 ? `${(w*h*qty).toFixed(2)} m² × ${fmt(rate)} por m²` : 'Ingresa ancho y alto en metros';
+  }else if(m.unit==='cama'){
+    const wcm=pf($('inCamaW').value), hcm=pf($('inCamaH').value);
+    const both=$('inCamaBoth').checked;
+    const minCharge=pf($('inCamaMin').value)||0;
+    const effQty=qty*(both?2:1);
+    const areaCama=m.anchoCama*m.altoCama;
+    const calcTier=(price)=>{
+      const divisor=areaCama/price;
+      let piezaPrice=(wcm*hcm)/divisor;
+      if(minCharge>0 && piezaPrice<minCharge) piezaPrice=minCharge;
+      return piezaPrice*effQty;
+    };
+    total=calcTier(rate); d=calcTier(m.designer); p=calcTier(m.public);
+    if(wcm>0 && hcm>0){
+      const piezasPorCama=Math.max(0, Math.floor(m.anchoCama/wcm)*Math.floor(m.altoCama/hcm));
+      const aprov=piezasPorCama>0 ? ((wcm*hcm*piezasPorCama)/areaCama*100) : 0;
+      hint=`${wcm}×${hcm} cm${both?' · 2 lados':''} · ${piezasPorCama} piezas/cama (${aprov.toFixed(0)}% aprov.)`;
+    }else{
+      hint='Ingresa ancho y alto de la pieza en cm';
+    }
   }else{
     total=rate*qty; d=m.designer*qty; p=m.public*qty;
     hint=`${qty} × ${fmt(rate)} por unidad`;
@@ -511,12 +573,24 @@ function addItem(){
   const r=calc(); if(!r) return;
   if(r.total<=0){ toast('Ingresa medidas válidas'); return; }
   const m=r.m;
+  const isCama = m.unit==='cama';
+  const both = isCama && $('inCamaBoth').checked;
   let desc = m.unit==='m2'
     ? `${$('inW').value}×${$('inH').value} m × ${r.qty}`
-    : `× ${r.qty}`;
+    : isCama
+      ? `${$('inCamaW').value}×${$('inCamaH').value} cm × ${r.qty}${both?' (2 lados)':''}`
+      : `× ${r.qty}`;
   if(manualPrice) desc+=' · precio manual';
   const note=$('inNote').value.trim();
-  const item = {matId:m.id, name:m.name, desc, note, d:r.d, p:r.p, w:$('inW').value, h:$('inH').value, qty:r.qty, manual:manualPrice};
+  const item = {
+    matId:m.id, name:m.name, desc, note, d:r.d, p:r.p,
+    unit:m.unit,
+    w: isCama ? $('inCamaW').value : $('inW').value,
+    h: isCama ? $('inCamaH').value : $('inH').value,
+    qty:r.qty, manual:manualPrice,
+    both: isCama ? both : undefined,
+    minCharge: isCama ? (pf($('inCamaMin').value)||0) : undefined
+  };
   if(editItemIdx!==null){
     quote[editItemIdx]=item;
     exitEditMode();
@@ -535,7 +609,13 @@ function editItem(i){
   editItemIdx = i;
   $('selMat').value = it.matId;
   onMatChange();
-  $('inW').value = it.w||''; $('inH').value = it.h||'';
+  if(it.unit==='cama'){
+    $('inCamaW').value = it.w||''; $('inCamaH').value = it.h||'';
+    $('inCamaBoth').checked = !!it.both;
+    $('inCamaMin').value = it.minCharge||'';
+  }else{
+    $('inW').value = it.w||''; $('inH').value = it.h||'';
+  }
   $('inQty').value = it.qty || 1;
   $('inNote').value = it.note || '';
   manualPrice = !!it.manual;
@@ -560,17 +640,21 @@ function exitEditMode(){
   $('btnAddItem').textContent = '+ Agregar ítem';
   const cancel=$('cancelEditBtn'); if(cancel) cancel.remove();
   $('inW').value=''; $('inH').value=''; $('inQty').value=1; $('inNote').value='';
+  $('inCamaW').value=''; $('inCamaH').value=''; $('inCamaBoth').checked=false; $('inCamaMin').value='';
   manualPrice=false; calc();
 }
 
-// Numeración de proforma
-const LS_COUNT='cotizador_count_v3', LS_QNUM='cotizador_qnum_v3';
+// Numeración de proforma — formato PR-AAAA-MMDD-Letra (una letra por proforma emitida ese día)
+const LS_QNUM='cotizador_qnum_v3';
 function proformaNum(){
   let n=localStorage.getItem(LS_QNUM);
   if(!n){
-    const c=(parseInt(localStorage.getItem(LS_COUNT))||0)+1;
-    localStorage.setItem(LS_COUNT,c);
-    n='PRF-'+String(c).padStart(4,'0');
+    const d=new Date();
+    const mmdd=String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    const prefix='PR-'+d.getFullYear()+'-'+mmdd+'-';
+    const hist=JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+    const count=hist.filter(h=>h.num && h.num.startsWith(prefix)).length;
+    n=prefix+String.fromCharCode(65+(count%26));
     localStorage.setItem(LS_QNUM,n);
   }
   return n;
@@ -619,6 +703,33 @@ function renderQuote(){
 
 function fmtDate(ts){ return new Date(ts).toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'}); }
 
+// Resumen del proyecto (área total, alto uniforme, cantidad) a partir de los ítems de la cotización
+function projectSummary(items){
+  let areaTotal=0; const heights=new Set(); const qtyByName={};
+  items.forEach(it=>{
+    const isM2 = it.unit==null || it.unit==='m2'; // registros históricos sin `unit` eran siempre m2
+    const w=parseFloat(it.w)||0, h=parseFloat(it.h)||0, qty=it.qty||1;
+    if(isM2 && w>0 && h>0){ areaTotal += w*h*qty; heights.add(h.toFixed(2)); }
+    qtyByName[it.name] = (qtyByName[it.name]||0) + qty;
+  });
+  return {
+    areaTotal,
+    altoUniforme: heights.size===1 ? [...heights][0] : null,
+    cantidadStr: Object.entries(qtyByName).map(([name,q])=>`${q} × ${name}`).join(' + ')
+  };
+}
+
+// Agrupa los ítems por material para la tabla de desglose de medidas
+function groupItemsByMat(items){
+  const groups=[];
+  items.forEach(it=>{
+    let g = groups.find(x=>x.name===it.name);
+    if(!g){ g={name:it.name, items:[]}; groups.push(g); }
+    g.items.push(it);
+  });
+  return groups;
+}
+
 function requireStaffCode(){
   const staff = $('staffCode').value.trim();
   if(!staff){ toast('Ingresa el código de personal'); $('staffCode').focus(); return null; }
@@ -633,6 +744,7 @@ function currentRecord(staff){
     cli: $('clientName').value.trim() || 'Consumidor final',
     ruc: $('clientRuc').value.trim(),
     wa: $('waNumber').value.trim(),
+    concept: $('clientConcept').value.trim(),
     staff,
     mode, items: quote.slice(), ivaOn, subtotal, iva, total,
     date: Date.now()
@@ -648,38 +760,101 @@ function saveHistory(rec){
 }
 
 function renderPrint(rec){
-  const label = rec.mode==='designer' ? 'Precio diseñador' : 'Precio público';
   const empLines = [cfg.ruc?`RUC: ${cfg.ruc}`:'', cfg.addr||'', cfg.phone?`Tel: ${cfg.phone}`:'', cfg.email||''].filter(Boolean).join(' · ');
+  const {areaTotal, altoUniforme, cantidadStr} = projectSummary(rec.items);
+  const groups = groupItemsByMat(rec.items);
+
+  const medRows = groups.map(g=>{
+    const isM2Group = g.items.every(it=>(it.unit==null||it.unit==='m2'));
+    const header = `<tr class="pgroup"><td colspan="5">${esc(g.name.toUpperCase())}${isM2Group && altoUniforme && g.items.every(it=>(parseFloat(it.h)||0).toFixed(2)===altoUniforme) ? ` — ALTO UNIFORME DE ${altoUniforme} M` : ''}</td></tr>`;
+    const rows = g.items.map((it,i)=>{
+      const w=parseFloat(it.w)||0, h=parseFloat(it.h)||0;
+      const isM2 = (it.unit==null||it.unit==='m2') && w>0 && h>0;
+      const isCama = it.unit==='cama';
+      const wDisp = isM2 ? w.toFixed(2)+' m' : isCama ? w.toFixed(1)+' cm' : '—';
+      const hDisp = isM2 ? h.toFixed(2)+' m' : isCama ? h.toFixed(1)+' cm' : '—';
+      const areaDisp = isM2 ? (w*h*it.qty).toFixed(2)+' m²' : it.qty+' und.'+(isCama&&it.both?' (2 lados)':'');
+      return `<tr><td>${it.qty}</td><td>${esc(it.note||('Ítem '+(i+1)))}</td>
+        <td>${wDisp}</td><td>${hDisp}</td>
+        <td><b>${areaDisp}</b></td></tr>`;
+    }).join('');
+    return header+rows;
+  }).join('');
+
+  const quoteRows = rec.items.map(it=>{
+    const w=parseFloat(it.w)||0, h=parseFloat(it.h)||0;
+    const isM2 = (it.unit==null||it.unit==='m2') && w>0 && h>0;
+    const total = rec.mode==='designer'?it.d:it.p;
+    const areaCell = isM2 ? (w*h*it.qty).toFixed(2)+' m²' : it.qty+' und.';
+    const unitPrice = isM2 ? total/((w*h*it.qty)||1) : total/(it.qty||1);
+    return `<tr>
+      <td class="pareacell">${areaCell}${it.note?`<br><small>(${esc(it.note)})</small>`:''}</td>
+      <td><b>${esc(it.name)}</b>${it.desc?`<ul><li>${esc(it.desc)}</li></ul>`:''}</td>
+      <td>${fmt(unitPrice)}${isM2?' /m²':' /und.'}</td>
+      <td><b>${fmt(total)}</b></td>
+    </tr>`;
+  }).join('');
+
   $('printArea').innerHTML=`
-    <div class="ph">
-      <div class="pcmyk"><span></span><span></span><span></span><span></span></div>
-      <div>
-        <h2>${esc(cfg.name)}</h2>
-        <div class="psub">${esc(cfg.loc)}${empLines?' · '+esc(empLines):''}</div>
+    <div class="ph2">
+      <img class="plogo" src="logo-graficas-liz.png" alt="${esc(cfg.name)}">
+      <div class="ptitleblock">
+        <h1>PROFORMA</h1>
+        <div class="pref">N° Ref: <b>${esc(rec.num)}</b></div>
+        <div class="pref">Fecha: <b>${fmtDate(rec.date)}</b></div>
       </div>
     </div>
-    <div class="pmeta">
-      <span><b>PROFORMA ${esc(rec.num)}</b> — ${label}</span>
-      <span>Fecha: ${fmtDate(rec.date)}</span>
+    <div class="pdivider"></div>
+
+    <div class="psectitle"><span class="pbar"></span>INFORMACIÓN DEL CLIENTE Y PROYECTO</div>
+    <div class="pinfobox">
+      <div class="pinfocol">
+        <div class="pinfo-row"><span class="pinfo-label">Cliente:</span> <b>${esc(rec.cli)}</b>${rec.ruc?` · C.I./RUC: ${esc(rec.ruc)}`:''}</div>
+        ${rec.concept?`<div class="pinfo-row"><span class="pinfo-label">Concepto:</span> ${esc(rec.concept)}</div>`:''}
+        ${empLines?`<div class="pinfo-row"><span class="pinfo-label">${esc(cfg.name)}:</span> ${esc(empLines)}</div>`:''}
+      </div>
+      <div class="pinfocol pinfocol-r">
+        ${areaTotal>0?`<div class="pinfo-row"><span class="pinfo-label">Área total:</span> ${areaTotal.toFixed(2)} m²</div>`:''}
+        ${altoUniforme?`<div class="pinfo-row"><span class="pinfo-label">Alto uniforme:</span> ${altoUniforme} m</div>`:''}
+        <div class="pinfo-row"><span class="pinfo-label">Cantidad:</span> ${esc(cantidadStr)}</div>
+      </div>
     </div>
-    <div class="pmeta" style="margin-top:-8px">
-      <span>Cliente: <b>${esc(rec.cli)}</b>${rec.ruc?` · C.I./RUC: ${esc(rec.ruc)}`:''}${rec.wa?` · Tel: ${esc(rec.wa)}`:''}</span>
-    </div>
-    <table>
-      <tr><th>Descripción</th><th>Detalle</th><th>Valor</th></tr>
-      ${rec.items.map(it=>`<tr><td>${esc(it.name)}${it.note?`<br><span style="color:#666;font-size:11px">${esc(it.note)}</span>`:''}</td><td>${esc(it.desc)}</td><td>${fmt(rec.mode==='designer'?it.d:it.p)}</td></tr>`).join('')}
+
+    <div class="psectitle"><span class="pbar"></span>DESGLOSE DE MEDIDAS Y ESPECIFICACIONES</div>
+    <table class="pmedtable">
+      <tr><th>CANT.</th><th>ITEM / ELEMENTO</th><th>ANCHO</th><th>ALTO</th><th>ÁREA</th></tr>
+      ${medRows}
     </table>
-    ${rec.ivaOn?`<div class="pmeta" style="margin-top:14px"><span>Subtotal</span><span>${fmt(rec.subtotal)}</span></div>
-    <div class="pmeta" style="margin-top:-8px"><span>IVA 15%</span><span>${fmt(rec.iva)}</span></div>`:''}
-    <div class="ptotal"><div>TOTAL: ${fmt(rec.total)}</div></div>
-    <div class="pfoot">Proforma válida por 15 días. Precios sujetos a cambio según medidas finales y arte aprobado. Este documento no constituye factura.${rec.staff?`<br>Atendido por: ${esc(rec.staff)}`:''}</div>`;
+
+    <div class="psectitle"><span class="pbar"></span>PRESUPUESTO / COTIZACIÓN</div>
+    <table class="pquotetable">
+      <tr><th>ÁREA / CANT.</th><th>DESCRIPCIÓN</th><th>P. UNIT.</th><th>SUBTOTAL</th></tr>
+      ${quoteRows}
+    </table>
+    <div class="ptotalsbox">
+      ${rec.ivaOn?`<div class="ptrow"><span>Subtotal:</span><span>${fmt(rec.subtotal)}</span></div>
+      <div class="ptrow"><span>IVA (15%):</span><span>${fmt(rec.iva)}</span></div>`:''}
+      <div class="ptotal2"><span>TOTAL:</span><span>${fmt(rec.total)}</span></div>
+    </div>
+
+    <div class="psectitle"><span class="pbar"></span>TÉRMINOS Y CONDICIONES</div>
+    <ul class="pterms">
+      <li><b>Validez de la oferta:</b> 15 días a partir de la fecha de emisión.</li>
+      <li><b>Forma de pago:</b> 50% de abono para inicio de trabajos y 50% restante contra entrega e instalación.</li>
+      <li><b>Alcance:</b> Incluye materiales, impresión, acabados e instalación en sitio según las medidas especificadas.</li>
+      <li><b>Medidas:</b> Las medidas de ancho son las tomadas en sitio; el alto se establece según lo indicado para cada ítem.</li>
+      ${rec.staff?`<li><b>Atendido por:</b> ${esc(rec.staff)}</li>`:''}
+    </ul>
+    <div class="pfoot2">Gracias por su preferencia • ${esc(cfg.name)}</div>`;
   window.print();
 }
 
 function buildWaMsg(rec){
   const label = rec.mode==='designer' ? 'Precio diseñador' : 'Precio público';
   let msg=`*PROFORMA ${rec.num} — ${cfg.name}*\n_${cfg.loc}${cfg.ruc?` · RUC: ${cfg.ruc}`:''}${cfg.phone?` · Tel: ${cfg.phone}`:''}_\n_${label}_\n`;
-  msg+=`Cliente: ${rec.cli}${rec.ruc?` · C.I./RUC: ${rec.ruc}`:''}${rec.wa?` · Tel: ${rec.wa}`:''}\n\n`;
+  msg+=`Cliente: ${rec.cli}${rec.ruc?` · C.I./RUC: ${rec.ruc}`:''}${rec.wa?` · Tel: ${rec.wa}`:''}\n`;
+  if(rec.concept) msg+=`Concepto: ${rec.concept}\n`;
+  msg+=`\n`;
   rec.items.forEach(it=>{
     msg+=`▪ ${it.name} (${it.desc})${it.note?`\n   ${it.note}`:''} — ${fmt(rec.mode==='designer'?it.d:it.p)}\n`;
   });
@@ -749,6 +924,7 @@ function editHistRecord(){
   $('clientName').value = h.cli==='Consumidor final' ? '' : h.cli;
   $('clientRuc').value = h.ruc||'';
   $('waNumber').value = h.wa||'';
+  $('clientConcept').value = h.concept||'';
   $('staffCode').value = h.staff||localStorage.getItem(LS_STAFF)||'';
   closeHistModal();
   exitEditMode();
@@ -830,7 +1006,7 @@ function renderMats(){
       </div>
       <div class="matbody" onclick="openMatModal(${m.id})">
         <b>${esc(m.name)}</b>
-        <small><span class="badge">${m.unit==='m2'?'por m²':'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}</small>
+        <small><span class="badge">${m.unit==='m2'?'por m²':m.unit==='cama'?`cama ${m.anchoCama}×${m.altoCama} cm`:'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}</small>
       </div>
       <div class="mp" onclick="openMatModal(${m.id})">
         <div class="d">${fmt(m.designer)}</div>
@@ -856,24 +1032,36 @@ function openMatModal(id){
     $('mName').value=m.name; $('mUnit').value=m.unit;
     $('mDesigner').value=m.designer; $('mPublic').value=m.public;
     $('mMin').value=m.min||'';
+    $('mCamaW').value=m.anchoCama||''; $('mCamaH').value=m.altoCama||'';
   }else{
     $('mName').value=''; $('mUnit').value='m2';
     $('mDesigner').value=''; $('mPublic').value=''; $('mMin').value='';
+    $('mCamaW').value=''; $('mCamaH').value='';
   }
   onUnitChange();
   $('matModal').classList.add('open');
 }
 function closeMatModal(){ $('matModal').classList.remove('open'); }
-function onUnitChange(){ $('minWrap').style.display = $('mUnit').value==='m2'?'block':'none'; }
+function onUnitChange(){
+  const u=$('mUnit').value;
+  $('minWrap').style.display = u==='m2'?'block':'none';
+  $('camaDimsWrap').style.display = u==='cama'?'block':'none';
+  $('mDesignerLabel').textContent = u==='cama' ? 'Precio cama completa — diseñador ($)' : 'Precio diseñador ($)';
+  $('mPublicLabel').textContent = u==='cama' ? 'Precio cama completa — público ($)' : 'Precio público ($)';
+}
 
 function saveMat(){
   const name=$('mName').value.trim();
+  const unit=$('mUnit').value;
   const designer=pf($('mDesigner').value);
   const pub=pf($('mPublic').value);
   if(!name||designer<=0||pub<=0){ toast('Completa nombre y precios'); return; }
+  if(unit==='cama' && (pf($('mCamaW').value)<=0 || pf($('mCamaH').value)<=0)){ toast('Completa el ancho y alto de la cama'); return; }
   const data={
-    name, unit:$('mUnit').value, designer, public:pub,
-    min: $('mUnit').value==='m2' ? pf($('mMin').value) : 0
+    name, unit, designer, public:pub,
+    min: unit==='m2' ? pf($('mMin').value) : 0,
+    anchoCama: unit==='cama' ? pf($('mCamaW').value) : 0,
+    altoCama: unit==='cama' ? pf($('mCamaH').value) : 0
   };
   if(editingId){
     Object.assign(mats.find(x=>x.id===editingId), data);
@@ -900,7 +1088,8 @@ function toast(t){
 }
 
 $('selMat').addEventListener('change',()=>{manualPrice=false; onMatChange();});
-['inW','inH','inQty'].forEach(id=>$(id).addEventListener('input',resetManual));
+['inW','inH','inQty','inCamaW','inCamaH','inCamaMin'].forEach(id=>$(id).addEventListener('input',resetManual));
+$('inCamaBoth').addEventListener('change',resetManual);
 $('priceVal').addEventListener('input',()=>{manualPrice=true; calc();});
 $('mUnit').addEventListener('change',onUnitChange);
 ['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail','cfgPin'].forEach(id=>$(id).addEventListener('change',saveCfg));
