@@ -268,6 +268,13 @@ select:focus,input:focus{border-color:var(--magenta)}
   </div>
 
   <div class="card">
+    <label style="margin-top:0">PIN modo Diseñador (opcional)</label>
+    <input type="text" id="cfgPin" maxlength="6" inputmode="numeric" placeholder="Déjalo vacío para no pedir PIN">
+    <p class="hint" style="text-align:left;margin-top:8px">Si lo defines, se pedirá antes de mostrar el precio de costo — así el cliente no lo ve si le prestas el celular.</p>
+  </div>
+
+  <div id="backupNag"></div>
+  <div class="card">
     <label style="margin-top:0">Respaldo de datos</label>
     <button class="btn ghost" onclick="exportBackup()">⬇️ Exportar backup (JSON)</button>
     <label for="importFile" class="btn ghost" style="display:block; text-align:center; margin-top:10px">⬆️ Importar backup</label>
@@ -325,6 +332,18 @@ select:focus,input:focus{border-color:var(--magenta)}
   </div>
 </div>
 
+<!-- Modal PIN diseñador -->
+<div class="modal" id="pinModal" onclick="if(event.target===this)closePinModal()">
+  <div class="sheet">
+    <h2>PIN de diseñador</h2>
+    <p class="sub">Ingresa el PIN para ver el precio de costo</p>
+    <div style="height:6px"></div>
+    <input type="password" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••" style="text-align:center;font-size:26px;letter-spacing:10px">
+    <button class="btn primary" onclick="confirmPin()">Confirmar</button>
+    <button class="btn ghost" onclick="closePinModal()">Cancelar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
@@ -332,7 +351,7 @@ select:focus,input:focus{border-color:var(--magenta)}
 // ================= DATA =================
 const LS_MATS='cotizador_mats_v3', LS_QUOTE='cotizador_quote_v3', LS_MODE='cotizador_mode_v3';
 const LS_HIST='cotizador_hist_v1', LS_IVA='cotizador_iva_v1', LS_CFG='cotizador_cfg_v1', LS_STAFF='cotizador_staff_v1';
-const DEFAULT_CFG={name:'Multiservicios Gráficos', loc:'Portoviejo · Ecuador', ruc:'', addr:'', phone:'', email:''};
+const DEFAULT_CFG={name:'Multiservicios Gráficos', loc:'Portoviejo · Ecuador', ruc:'', addr:'', phone:'', email:'', pin:''};
 
 const DEFAULT_MATS=[
   {id:1, name:'Lona 13oz impresa', unit:'m2', designer:6.00, public:10.00, min:0.5},
@@ -359,13 +378,16 @@ let editingId = null;
 let histOpenNum = null;
 
 function saveCfg(){
+  const pin = $('cfgPin').value.trim();
+  if(pin && !/^\d{4,6}$/.test(pin)){ toast('El PIN debe tener 4 a 6 dígitos'); $('cfgPin').value=cfg.pin||''; return; }
   cfg = {
     name: $('cfgName').value.trim() || DEFAULT_CFG.name,
     loc: $('cfgLoc').value.trim() || DEFAULT_CFG.loc,
     ruc: $('cfgRuc').value.trim(),
     addr: $('cfgAddr').value.trim(),
     phone: $('cfgPhone').value.trim(),
-    email: $('cfgEmail').value.trim()
+    email: $('cfgEmail').value.trim(),
+    pin
   };
   localStorage.setItem(LS_CFG, JSON.stringify(cfg));
   renderHeader();
@@ -381,16 +403,46 @@ function loadCfgForm(){
   $('cfgAddr').value=cfg.addr;
   $('cfgPhone').value=cfg.phone;
   $('cfgEmail').value=cfg.email;
+  $('cfgPin').value=cfg.pin||'';
+}
+
+// ================= PIN MODO DISEÑADOR =================
+function openPinModal(){
+  $('pinInput').value='';
+  $('pinModal').classList.add('open');
+  setTimeout(()=>$('pinInput').focus(),150);
+}
+function closePinModal(){ $('pinModal').classList.remove('open'); pendingMode=null; }
+function confirmPin(){
+  if($('pinInput').value.trim()===cfg.pin){
+    designerUnlocked=true;
+    closePinModal();
+    applyMode(pendingMode||'designer');
+  }else{
+    toast('PIN incorrecto');
+    $('pinInput').value='';
+  }
 }
 
 const $=id=>document.getElementById(id);
 const fmt=n=>'$'+n.toFixed(2);
 const pf=v=>parseFloat(String(v).replace(',','.'))||0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const saveMats=()=>localStorage.setItem(LS_MATS,JSON.stringify(mats));
 const saveQuote=()=>localStorage.setItem(LS_QUOTE,JSON.stringify(quote));
 
 // ================= MODO DE PRECIO =================
+let designerUnlocked=false, pendingMode=null;
 function setMode(m){
+  if(m==='designer' && cfg.pin && !designerUnlocked){
+    pendingMode=m;
+    if(mode!=='public') applyMode('public'); // fallback seguro mientras se pide el PIN
+    openPinModal();
+    return;
+  }
+  applyMode(m);
+}
+function applyMode(m){
   mode=m; manualPrice=false;
   localStorage.setItem(LS_MODE,m);
   $('btnDesigner').className = m==='designer' ? 'on-designer':'';
@@ -410,7 +462,7 @@ function showView(v,btn){
 
 // ================= COTIZAR =================
 function renderSelect(){
-  $('selMat').innerHTML = mats.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  $('selMat').innerHTML = mats.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
   onMatChange();
 }
 function currentMat(){ return mats.find(m=>m.id==$('selMat').value); }
@@ -545,7 +597,7 @@ function renderQuote(){
   }
   $('quoteList').innerHTML = quote.map((it,i)=>`
     <div class="item" onclick="editItem(${i})" style="cursor:pointer">
-      <div class="info"><b>${it.name}</b><small>${it.desc}${it.note?` — ${it.note}`:''}</small></div>
+      <div class="info"><b>${esc(it.name)}</b><small>${esc(it.desc)}${it.note?` — ${esc(it.note)}`:''}</small></div>
       <div class="amt" style="color:${color}">${fmt(mode==='designer'?it.d:it.p)}</div>
       <button class="del" onclick="event.stopPropagation(); removeItem(${i})">×</button>
     </div>`).join('');
@@ -602,25 +654,25 @@ function renderPrint(rec){
     <div class="ph">
       <div class="pcmyk"><span></span><span></span><span></span><span></span></div>
       <div>
-        <h2>${cfg.name}</h2>
-        <div class="psub">${cfg.loc}${empLines?' · '+empLines:''}</div>
+        <h2>${esc(cfg.name)}</h2>
+        <div class="psub">${esc(cfg.loc)}${empLines?' · '+esc(empLines):''}</div>
       </div>
     </div>
     <div class="pmeta">
-      <span><b>PROFORMA ${rec.num}</b> — ${label}</span>
+      <span><b>PROFORMA ${esc(rec.num)}</b> — ${label}</span>
       <span>Fecha: ${fmtDate(rec.date)}</span>
     </div>
     <div class="pmeta" style="margin-top:-8px">
-      <span>Cliente: <b>${rec.cli}</b>${rec.ruc?` · C.I./RUC: ${rec.ruc}`:''}${rec.wa?` · Tel: ${rec.wa}`:''}</span>
+      <span>Cliente: <b>${esc(rec.cli)}</b>${rec.ruc?` · C.I./RUC: ${esc(rec.ruc)}`:''}${rec.wa?` · Tel: ${esc(rec.wa)}`:''}</span>
     </div>
     <table>
       <tr><th>Descripción</th><th>Detalle</th><th>Valor</th></tr>
-      ${rec.items.map(it=>`<tr><td>${it.name}${it.note?`<br><span style="color:#666;font-size:11px">${it.note}</span>`:''}</td><td>${it.desc}</td><td>${fmt(rec.mode==='designer'?it.d:it.p)}</td></tr>`).join('')}
+      ${rec.items.map(it=>`<tr><td>${esc(it.name)}${it.note?`<br><span style="color:#666;font-size:11px">${esc(it.note)}</span>`:''}</td><td>${esc(it.desc)}</td><td>${fmt(rec.mode==='designer'?it.d:it.p)}</td></tr>`).join('')}
     </table>
     ${rec.ivaOn?`<div class="pmeta" style="margin-top:14px"><span>Subtotal</span><span>${fmt(rec.subtotal)}</span></div>
     <div class="pmeta" style="margin-top:-8px"><span>IVA 15%</span><span>${fmt(rec.iva)}</span></div>`:''}
     <div class="ptotal"><div>TOTAL: ${fmt(rec.total)}</div></div>
-    <div class="pfoot">Proforma válida por 15 días. Precios sujetos a cambio según medidas finales y arte aprobado. Este documento no constituye factura.${rec.staff?`<br>Atendido por: ${rec.staff}`:''}</div>`;
+    <div class="pfoot">Proforma válida por 15 días. Precios sujetos a cambio según medidas finales y arte aprobado. Este documento no constituye factura.${rec.staff?`<br>Atendido por: ${esc(rec.staff)}`:''}</div>`;
   window.print();
 }
 
@@ -664,7 +716,7 @@ function renderHistorial(){
   }
   $('histList').innerHTML = hist.map(h=>`
     <div class="item" onclick="openHistDetail('${h.num}')" style="cursor:pointer">
-      <div class="info"><b>${h.num} — ${h.cli}</b><small>${fmtDate(h.date)} · ${h.mode==='designer'?'Diseñador':'Público'}${h.staff?` · ${h.staff}`:''}</small></div>
+      <div class="info"><b>${esc(h.num)} — ${esc(h.cli)}</b><small>${fmtDate(h.date)} · ${h.mode==='designer'?'Diseñador':'Público'}${h.staff?` · ${esc(h.staff)}`:''}</small></div>
       <div class="amt" style="color:${h.mode==='designer'?'var(--cyan)':'var(--magenta)'}">${fmt(h.total)}</div>
     </div>`).join('');
 }
@@ -677,7 +729,7 @@ function openHistDetail(num){
   $('histModalSub').textContent = `${fmtDate(h.date)} · ${h.mode==='designer'?'Precio diseñador':'Precio público'}${h.staff?` · Personal: ${h.staff}`:''}`;
   const color = h.mode==='designer' ? 'var(--cyan)':'var(--magenta)';
   $('histModalItems').innerHTML = h.items.map(it=>`
-    <div class="item"><div class="info"><b>${it.name}</b><small>${it.desc}${it.note?` — ${it.note}`:''}</small></div>
+    <div class="item"><div class="info"><b>${esc(it.name)}</b><small>${esc(it.desc)}${it.note?` — ${esc(it.note)}`:''}</small></div>
     <div class="amt" style="color:${color}">${fmt(h.mode==='designer'?it.d:it.p)}</div></div>`).join('')
     + (h.ivaOn?`<div class="trow" style="font-size:14px; color:var(--dim)"><span>Subtotal</span><span>${fmt(h.subtotal)}</span></div>
       <div class="trow" style="font-size:14px; color:var(--dim)"><span>IVA 15%</span><span>${fmt(h.iva)}</span></div>`:'')
@@ -728,6 +780,19 @@ function deleteHist(){
 }
 
 // ================= BACKUP =================
+const LS_LASTBACKUP='cotizador_lastbackup_v1';
+function checkBackupNag(){
+  const el=$('backupNag'); if(!el) return;
+  const last=parseInt(localStorage.getItem(LS_LASTBACKUP)||'0');
+  const days = last ? Math.floor((Date.now()-last)/86400000) : null;
+  if(days===null){
+    el.innerHTML='<div class="card" style="border-color:var(--yellow)">⚠️ Aún no has exportado un respaldo. Tus datos viven solo en este dispositivo — expórtalo para no perderlos.</div>';
+  }else if(days>=7){
+    el.innerHTML=`<div class="card" style="border-color:var(--yellow)">⚠️ Tu último respaldo fue hace ${days} días. Considera exportar uno nuevo.</div>`;
+  }else{
+    el.innerHTML='';
+  }
+}
 function exportBackup(){
   const data = {mats, hist: JSON.parse(localStorage.getItem(LS_HIST)||'[]'), exported: new Date().toISOString()};
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
@@ -735,6 +800,8 @@ function exportBackup(){
   a.href = URL.createObjectURL(blob);
   a.download = 'cotizador-backup-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
+  localStorage.setItem(LS_LASTBACKUP, String(Date.now()));
+  checkBackupNag();
   toast('Backup descargado ✓');
 }
 function importBackup(input){
@@ -762,7 +829,7 @@ function renderMats(){
         <button onclick="moveMat(${i},1)" ${i===mats.length-1?'disabled':''}>▼</button>
       </div>
       <div class="matbody" onclick="openMatModal(${m.id})">
-        <b>${m.name}</b>
+        <b>${esc(m.name)}</b>
         <small><span class="badge">${m.unit==='m2'?'por m²':'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}</small>
       </div>
       <div class="mp" onclick="openMatModal(${m.id})">
@@ -836,9 +903,10 @@ $('selMat').addEventListener('change',()=>{manualPrice=false; onMatChange();});
 ['inW','inH','inQty'].forEach(id=>$(id).addEventListener('input',resetManual));
 $('priceVal').addEventListener('input',()=>{manualPrice=true; calc();});
 $('mUnit').addEventListener('change',onUnitChange);
-['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail'].forEach(id=>$(id).addEventListener('change',saveCfg));
+['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail','cfgPin'].forEach(id=>$(id).addEventListener('change',saveCfg));
+$('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmPin(); });
 
-renderSelect(); setMode(mode); renderMats(); renderHistorial(); loadCfgForm(); renderHeader();
+renderSelect(); setMode(mode); renderMats(); renderHistorial(); loadCfgForm(); renderHeader(); checkBackupNag();
 $('staffCode').value = localStorage.getItem(LS_STAFF)||'';
 </script>
 
