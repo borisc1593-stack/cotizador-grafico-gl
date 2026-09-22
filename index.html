@@ -174,8 +174,6 @@ select:focus,input:focus{border-color:var(--magenta)}
   #printArea th{text-align:left; background:#1a3660; color:#fff; padding:7px 8px; font-size:11px; text-transform:uppercase; letter-spacing:.3px}
   #printArea th:last-child, #printArea td:last-child{text-align:right}
   #printArea td{padding:7px 8px; border-bottom:1px solid #e2e6ec; vertical-align:top}
-  #printArea .pmedtable td:nth-child(3), #printArea .pmedtable td:nth-child(4){text-align:right}
-  #printArea .pgroup td{background:#eef1f5; font-weight:700; font-size:10.5px; color:#33445a; text-align:left; letter-spacing:.3px}
   #printArea .pquotetable ul{margin:4px 0 0 16px; padding:0; color:#444}
   #printArea .pquotetable li{margin:2px 0}
   #printArea .pareacell{font-weight:700; white-space:nowrap}
@@ -386,7 +384,7 @@ select:focus,input:focus{border-color:var(--magenta)}
 // ================= DATA =================
 const LS_MATS='cotizador_mats_v3', LS_QUOTE='cotizador_quote_v3', LS_MODE='cotizador_mode_v3';
 const LS_HIST='cotizador_hist_v1', LS_IVA='cotizador_iva_v1', LS_CFG='cotizador_cfg_v1', LS_STAFF='cotizador_staff_v1';
-const DEFAULT_CFG={name:'Multiservicios Gráficos', loc:'Portoviejo · Ecuador', ruc:'', addr:'', phone:'', email:'', pin:''};
+const DEFAULT_CFG={name:'Gráficas Liz', loc:'Portoviejo · Ecuador', ruc:'', addr:'', phone:'', email:'', pin:''};
 
 const DEFAULT_MATS=[
   {id:1, name:'Lona 13oz impresa', unit:'m2', designer:6.00, public:10.00, min:0.5},
@@ -415,6 +413,8 @@ let quote = JSON.parse(localStorage.getItem(LS_QUOTE)||'[]');
 let mode = localStorage.getItem(LS_MODE) || 'public';
 let ivaOn = localStorage.getItem(LS_IVA)==='1';
 let cfg = Object.assign({}, DEFAULT_CFG, JSON.parse(localStorage.getItem(LS_CFG)||'null')||{});
+// Migración: quienes ya tenían guardado el nombre genérico anterior pasan al nombre real del negocio
+if(cfg.name==='Multiservicios Gráficos'){ cfg.name='Gráficas Liz'; localStorage.setItem(LS_CFG, JSON.stringify(cfg)); }
 let editingId = null;
 let histOpenNum = null;
 
@@ -719,17 +719,6 @@ function projectSummary(items){
   };
 }
 
-// Agrupa los ítems por material para la tabla de desglose de medidas
-function groupItemsByMat(items){
-  const groups=[];
-  items.forEach(it=>{
-    let g = groups.find(x=>x.name===it.name);
-    if(!g){ g={name:it.name, items:[]}; groups.push(g); }
-    g.items.push(it);
-  });
-  return groups;
-}
-
 function requireStaffCode(){
   const staff = $('staffCode').value.trim();
   if(!staff){ toast('Ingresa el código de personal'); $('staffCode').focus(); return null; }
@@ -762,24 +751,6 @@ function saveHistory(rec){
 function renderPrint(rec){
   const empLines = [cfg.ruc?`RUC: ${cfg.ruc}`:'', cfg.addr||'', cfg.phone?`Tel: ${cfg.phone}`:'', cfg.email||''].filter(Boolean).join(' · ');
   const {areaTotal, altoUniforme, cantidadStr} = projectSummary(rec.items);
-  const groups = groupItemsByMat(rec.items);
-
-  const medRows = groups.map(g=>{
-    const isM2Group = g.items.every(it=>(it.unit==null||it.unit==='m2'));
-    const header = `<tr class="pgroup"><td colspan="5">${esc(g.name.toUpperCase())}${isM2Group && altoUniforme && g.items.every(it=>(parseFloat(it.h)||0).toFixed(2)===altoUniforme) ? ` — ALTO UNIFORME DE ${altoUniforme} M` : ''}</td></tr>`;
-    const rows = g.items.map((it,i)=>{
-      const w=parseFloat(it.w)||0, h=parseFloat(it.h)||0;
-      const isM2 = (it.unit==null||it.unit==='m2') && w>0 && h>0;
-      const isCama = it.unit==='cama';
-      const wDisp = isM2 ? w.toFixed(2)+' m' : isCama ? w.toFixed(1)+' cm' : '—';
-      const hDisp = isM2 ? h.toFixed(2)+' m' : isCama ? h.toFixed(1)+' cm' : '—';
-      const areaDisp = isM2 ? (w*h*it.qty).toFixed(2)+' m²' : it.qty+' und.'+(isCama&&it.both?' (2 lados)':'');
-      return `<tr><td>${it.qty}</td><td>${esc(it.note||('Ítem '+(i+1)))}</td>
-        <td>${wDisp}</td><td>${hDisp}</td>
-        <td><b>${areaDisp}</b></td></tr>`;
-    }).join('');
-    return header+rows;
-  }).join('');
 
   const quoteRows = rec.items.map(it=>{
     const w=parseFloat(it.w)||0, h=parseFloat(it.h)||0;
@@ -797,7 +768,7 @@ function renderPrint(rec){
 
   $('printArea').innerHTML=`
     <div class="ph2">
-      <img class="plogo" src="logo-graficas-liz.png" alt="${esc(cfg.name)}">
+      <img class="plogo" id="printLogo" src="logo-graficas-liz.png" alt="${esc(cfg.name)}">
       <div class="ptitleblock">
         <h1>PROFORMA</h1>
         <div class="pref">N° Ref: <b>${esc(rec.num)}</b></div>
@@ -820,12 +791,6 @@ function renderPrint(rec){
       </div>
     </div>
 
-    <div class="psectitle"><span class="pbar"></span>DESGLOSE DE MEDIDAS Y ESPECIFICACIONES</div>
-    <table class="pmedtable">
-      <tr><th>CANT.</th><th>ITEM / ELEMENTO</th><th>ANCHO</th><th>ALTO</th><th>ÁREA</th></tr>
-      ${medRows}
-    </table>
-
     <div class="psectitle"><span class="pbar"></span>PRESUPUESTO / COTIZACIÓN</div>
     <table class="pquotetable">
       <tr><th>ÁREA / CANT.</th><th>DESCRIPCIÓN</th><th>P. UNIT.</th><th>SUBTOTAL</th></tr>
@@ -846,7 +811,14 @@ function renderPrint(rec){
       ${rec.staff?`<li><b>Atendido por:</b> ${esc(rec.staff)}</li>`:''}
     </ul>
     <div class="pfoot2">Gracias por su preferencia • ${esc(cfg.name)}</div>`;
-  window.print();
+  // Espera a que el logo termine de cargar antes de imprimir — si no, en la primera
+  // impresión de la sesión el PDF puede salir sin el logo.
+  const logoImg = $('printLogo');
+  if(logoImg.complete){ window.print(); }
+  else{
+    logoImg.onload = ()=>window.print();
+    logoImg.onerror = ()=>window.print();
+  }
 }
 
 function buildWaMsg(rec){
@@ -1095,6 +1067,7 @@ $('mUnit').addEventListener('change',onUnitChange);
 ['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail','cfgPin'].forEach(id=>$(id).addEventListener('change',saveCfg));
 $('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmPin(); });
 
+(new Image()).src = 'logo-graficas-liz.png'; // precarga para que ya esté lista al generar la primera proforma
 renderSelect(); setMode(mode); renderMats(); renderHistorial(); loadCfgForm(); renderHeader(); checkBackupNag();
 $('staffCode').value = localStorage.getItem(LS_STAFF)||'';
 </script>
