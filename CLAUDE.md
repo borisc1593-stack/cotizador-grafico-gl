@@ -68,3 +68,15 @@ Implementado 2026-09-16: nuevo `unit: 'cama'` en el modelo de materiales, junto 
 
 ### Desglose visual (2026-10-13)
 `renderCamaInfo()` muestra en la pantalla Cotizar un dibujo a escala de la cama con las piezas y el paso a paso del precio (cama completa → % que ocupa la pieza → precio por pieza → × impresiones → total). Las "piezas por cama" prueban la pieza normal y girada y usan la que más entra (solo referencia; el precio sigue siendo proporcional al área).
+
+## Catálogo y precios reales (2026-10-14)
+
+Precios dados por el usuario (diseñador / público, por m²): Lona 7/12, Lona traslúcida 12/22, Vinil 7/12, Vinil laminado 12/18, Microperforado 12/22, Letrero tipo pantalla 30/45, Letrero luminoso tubos LED 90/140.
+
+UV Roland por rollo (por m², mismo precio diseñador/público hasta que el usuario dé el de diseñador): solo CMYK 15, CMYK + blanco + barniz 20, solo blanco 15, solo barniz 15, impresión + corte + blanco + barniz 25.
+
+Migración única con flag `cotizador_seed_2026_10_14`: actualiza precios por nombre e inserta los materiales nuevos (`NEW_MATS_V1`) sin duplicar ni revivir lo que el usuario borre después.
+
+### Instalación
+- Checkbox "Con instalación" en ítems por m²: suma `cfg.instRate` × m² cobrados (default $4/m², editable en Materiales). Aplica igual a diseñador y público. Se desmarca solo al agregar el ítem.
+- Traslado fuera de ciudad, personal adicional y andamio son materiales `unidad` con precio 0 ("Extra: …"): se cotizan escribiendo el valor en el precio.
