@@ -88,6 +88,20 @@ select:focus,input:focus{border-color:var(--magenta)}
 .bigprice.manual input{color:var(--yellow)}
 .hint{color:var(--dim); font-size:12px; margin-top:8px; text-align:center}
 /* Desglose impresión UV por cama */
+.xbox{margin-top:12px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:4px 12px}
+.xbox .xtitle{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); padding:8px 0 2px}
+.xrow{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); min-height:52px}
+.xrow:last-child{border-bottom:none}
+.xrow label{all:unset; flex:1; display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; font-weight:600; color:var(--text)}
+.xrow label small{color:var(--dim); font-weight:500; font-size:12px}
+.xrow input[type=checkbox]{width:20px; height:20px; flex:none}
+.xrow .xamt{width:104px; flex:none; padding:9px 10px; font-size:15px; text-align:right}
+.xrow .xamt:disabled{opacity:.35}
+.addonedit{display:flex; gap:8px; margin-top:8px; align-items:center}
+.addonedit input{padding:10px !important}
+.addonedit .an{flex:1}
+.addonedit .av{width:86px; flex:none}
+.addonedit button{background:none; border:none; color:var(--dim); font-size:22px; padding:0 4px; cursor:pointer}
 .camabox{margin-top:12px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px}
 .camabox .ctitle{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:8px}
 .camabox svg{width:100%; height:auto; display:block; margin-bottom:10px}
@@ -231,10 +245,7 @@ select:focus,input:focus{border-color:var(--magenta)}
         <div><label>Ancho (m)</label><input type="text" id="inW" inputmode="decimal" placeholder="Ej: 1.5"></div>
         <div><label>Alto / largo (m)</label><input type="text" id="inH" inputmode="decimal" placeholder="Ej: 0.25"></div>
       </div>
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:12px; text-transform:none; color:var(--text); font-size:14px; font-weight:600">
-        <input type="checkbox" id="inInst" style="width:18px;height:18px">
-        <span>Con instalación (<span id="instRateLbl">+$4.00</span>/m²)</span>
-      </label>
+      <div id="addonsWrap"></div>
     </div>
 
     <div id="camaInputs" style="display:none">
@@ -253,6 +264,26 @@ select:focus,input:focus{border-color:var(--magenta)}
 
     <label>Cantidad</label>
     <input type="number" id="inQty" inputmode="numeric" value="1" min="1">
+
+    <div class="xbox" id="extrasWrap">
+      <div class="xtitle">Instalación y extras</div>
+      <div class="xrow" id="xInstRow">
+        <label><input type="checkbox" id="xInst"><span>Instalación / tensado<br><small>por m² · vinil, micro, lona, vallas</small></span></label>
+        <input type="text" class="xamt" id="xInstRate" inputmode="decimal" placeholder="$/m²">
+      </div>
+      <div class="xrow">
+        <label><input type="checkbox" id="xFuera"><span>Fuera de la ciudad<br><small>traslado / viáticos</small></span></label>
+        <input type="text" class="xamt" id="xFueraAmt" inputmode="decimal" placeholder="$ monto" disabled>
+      </div>
+      <div class="xrow">
+        <label><input type="checkbox" id="xPersonal"><span>Personal adicional</span></label>
+        <input type="text" class="xamt" id="xPersonalAmt" inputmode="decimal" placeholder="$ monto" disabled>
+      </div>
+      <div class="xrow">
+        <label><input type="checkbox" id="xAndamio"><span>Andamio</span></label>
+        <input type="text" class="xamt" id="xAndamioAmt" inputmode="decimal" placeholder="$ monto" disabled>
+      </div>
+    </div>
 
     <label>Descripción (opcional)</label>
     <input type="text" id="inNote" placeholder="Ej: Letrero para fachada, incluye instalación">
@@ -367,6 +398,9 @@ select:focus,input:focus{border-color:var(--magenta)}
     <div id="minWrap">
       <label>Mínimo facturable (m²) — opcional</label>
       <input type="text" id="mMin" inputmode="decimal" placeholder="Ej: 0.25">
+      <label>Adicionales por m² (casillas al cotizar) — opcional</label>
+      <div id="addonsEdit"></div>
+      <button class="btn ghost" type="button" style="margin-top:8px; padding:10px" onclick="addAddonRow('', '')">+ Agregar adicional</button>
     </div>
     <button class="btn primary" onclick="saveMat()">Guardar</button>
     <button class="btn ghost" id="btnDeleteMat" style="display:none" onclick="deleteMat()">Eliminar material</button>
@@ -415,17 +449,12 @@ const DEFAULT_CFG={name:'Gráficas Liz', loc:'Portoviejo · Ecuador', ruc:'', ad
 
 // Materiales agregados el 2026-10-14 (UV Roland por rollo, letreros, extras de instalación).
 // `after` = nombre del material detrás del cual se inserta en instalaciones que ya tienen su catálogo guardado.
+const ROLAND_MAT={id:18, name:'UV Roland rollo (CMYK)', unit:'m2', designer:15.00, public:15.00, min:0, after:'Impresión UV cama plana',
+  addons:[{n:'Blanco',v:5},{n:'Barniz',v:5},{n:'Corte',v:5},{n:'Troquelado',v:3}]};
 const NEW_MATS_V1=[
+  ROLAND_MAT,
   {id:16, name:'Letrero tipo pantalla', unit:'m2', designer:30.00, public:45.00, min:0},
   {id:17, name:'Letrero luminoso tubos LED', unit:'m2', designer:90.00, public:140.00, min:0},
-  {id:18, name:'UV Roland rollo · solo CMYK', unit:'m2', designer:15.00, public:15.00, min:0, after:'Impresión UV cama plana'},
-  {id:19, name:'UV Roland rollo · CMYK + blanco + barniz', unit:'m2', designer:20.00, public:20.00, min:0, after:'UV Roland rollo · solo CMYK'},
-  {id:20, name:'UV Roland rollo · solo blanco', unit:'m2', designer:15.00, public:15.00, min:0, after:'UV Roland rollo · CMYK + blanco + barniz'},
-  {id:21, name:'UV Roland rollo · solo barniz', unit:'m2', designer:15.00, public:15.00, min:0, after:'UV Roland rollo · solo blanco'},
-  {id:22, name:'UV Roland rollo · impresión + corte + blanco + barniz', unit:'m2', designer:25.00, public:25.00, min:0, after:'UV Roland rollo · solo barniz'},
-  {id:23, name:'Extra: traslado fuera de ciudad', unit:'unidad', designer:0, public:0, min:0},
-  {id:24, name:'Extra: personal adicional', unit:'unidad', designer:0, public:0, min:0},
-  {id:25, name:'Extra: andamio', unit:'unidad', designer:0, public:0, min:0},
 ];
 
 const DEFAULT_MATS=[
@@ -478,6 +507,20 @@ if(!localStorage.getItem(LS_SEED1)){
   localStorage.setItem(LS_MATS, JSON.stringify(mats));
   localStorage.setItem(LS_SEED1, '1');
 }
+// Migración 2026-10-14b: las 5 variantes de Roland pasan a una sola con adicionales, y los "Extra: …" pasan a casillas
+const LS_SEED2='cotizador_seed_2026_10_14b';
+if(!localStorage.getItem(LS_SEED2)){
+  const viejos=['UV Roland rollo · solo CMYK','UV Roland rollo · CMYK + blanco + barniz','UV Roland rollo · solo blanco','UV Roland rollo · solo barniz','UV Roland rollo · impresión + corte + blanco + barniz','Extra: traslado fuera de ciudad','Extra: personal adicional','Extra: andamio'];
+  let pos=mats.findIndex(m=>m.name===viejos[0]);
+  mats=mats.filter(m=>!viejos.includes(m.name));
+  if(!mats.some(m=>m.name===ROLAND_MAT.name)){
+    const item=JSON.parse(JSON.stringify(ROLAND_MAT)); item.id=Date.now(); delete item.after;
+    if(pos<0||pos>mats.length){ const c=mats.findIndex(m=>m.unit==='cama'); pos = c>=0 ? c+1 : mats.length; }
+    mats.splice(pos,0,item);
+  }
+  localStorage.setItem(LS_MATS, JSON.stringify(mats));
+  localStorage.setItem(LS_SEED2,'1');
+}
 mats.forEach(m=>delete m.after);
 let quote = JSON.parse(localStorage.getItem(LS_QUOTE)||'[]');
 let mode = localStorage.getItem(LS_MODE) || 'public';
@@ -504,7 +547,7 @@ function saveCfg(){
   localStorage.setItem(LS_CFG, JSON.stringify(cfg));
   renderHeader(); renderInstLbl(); calc();
 }
-function renderInstLbl(){ const el=$('instRateLbl'); if(el) el.textContent='+'+fmt(Number(cfg.instRate||0)); }
+function renderInstLbl(){ if(!$('xInst').checked) $('xInstRate').value=Number(cfg.instRate||0).toFixed(2); }
 function renderHeader(){
   $('hdrName').textContent = cfg.name;
   $('hdrLoc').textContent = cfg.loc;
@@ -586,6 +629,9 @@ function onMatChange(){
   if(m.unit!=='cama') $('camaInfo').innerHTML='';
   $('areaInputs').style.display = m.unit==='m2' ? 'block':'none';
   $('camaInputs').style.display = m.unit==='cama' ? 'block':'none';
+  $('extrasWrap').style.display = m.unit==='cama' ? 'none':'block';
+  $('xInstRow').style.display = m.unit==='m2' ? 'flex':'none';
+  renderAddons(m);
   if(m.unit==='cama') $('inCamaMin').value = m.minPieza ? Number(m.minPieza).toFixed(2) : '';
   calc();
 }
@@ -604,9 +650,13 @@ function calc(){
     let area=w*h;
     if(area>0 && m.min && area<m.min){ area=m.min; hint=`Mínimo facturable: ${m.min} m² · `; }
     total=area*rate*qty; d=area*m.designer*qty; p=area*m.public*qty;
-    const inst = $('inInst').checked ? area*qty*(cfg.instRate||0) : 0;
-    total+=inst; d+=inst; p+=inst;
-    hint+= (w*h)>0 ? `${(w*h*qty).toFixed(2)} m² × ${fmt(rate)} por m²${inst?` + instalación ${fmt(cfg.instRate||0)}/m²`:''}` : 'Ingresa ancho y alto en metros';
+    const ad=checkedAddons(m), adRate=ad.reduce((t,a)=>t+a.v,0);
+    const instRate = $('xInst').checked ? pf($('xInstRate').value) : 0;
+    const extraM2 = area*qty*(adRate+instRate);
+    total+=extraM2; d+=extraM2; p+=extraM2;
+    hint+= (w*h)>0
+      ? `${(w*h*qty).toFixed(2)} m² × ${fmt(rate+adRate)} por m²${ad.length?` (${ad.map(a=>a.n.toLowerCase()).join(', ')})`:''}${instRate?` + instalación ${fmt(instRate)}/m²`:''}`
+      : 'Ingresa ancho y alto en metros';
   }else if(m.unit==='cama'){
     const wcm=pf($('inCamaW').value), hcm=pf($('inCamaH').value);
     const both=$('inCamaBoth').checked;
@@ -629,7 +679,12 @@ function calc(){
     }
   }else{
     total=rate*qty; d=m.designer*qty; p=m.public*qty;
-    hint = rate>0 ? `${qty} × ${fmt(rate)} por unidad` : 'Toca el precio y escribe el valor de este extra';
+    hint = `${qty} × ${fmt(rate)} por unidad`;
+  }
+  if(m.unit!=='cama'){
+    const ex=fixedExtras(), exSum=ex.reduce((t,x)=>t+x.v,0);
+    total+=exSum; d+=exSum; p+=exSum;
+    if(exSum) hint+=` + ${ex.map(x=>`${x.n.toLowerCase()} ${fmt(x.v)}`).join(' + ')}`;
   }
   if(manualPrice){
     const mv=pf($('priceVal').value);
@@ -697,6 +752,30 @@ function renderCamaInfo(m, wcm, hcm, qty, both, minCharge, rate){
   </div>`;
 }
 
+// ---- Adicionales por m² del material (Roland: blanco, barniz, corte, troquelado…) ----
+function renderAddons(m){
+  const list=(m.unit==='m2' && m.addons) ? m.addons : [];
+  $('addonsWrap').innerHTML = list.length ? `<div class="xbox"><div class="xtitle">Adicionales (por m²)</div>${list.map((a,i)=>`
+    <div class="xrow"><label><input type="checkbox" class="addonChk" data-i="${i}" onchange="resetManual()"><span>${esc(a.n)}</span></label>
+    <b style="color:var(--dim); font-size:14px">+${fmt(Number(a.v)||0)}/m²</b></div>`).join('')}</div>` : '';
+}
+function checkedAddons(m){
+  if(!m.addons) return [];
+  return [...document.querySelectorAll('.addonChk')].filter(c=>c.checked).map(c=>m.addons[+c.dataset.i]).filter(Boolean).map(a=>({n:a.n, v:Number(a.v)||0}));
+}
+// ---- Extras de monto fijo por ítem (fuera de la ciudad, personal, andamio) ----
+const EXTRAS=[{k:'fuera', chk:'xFuera', amt:'xFueraAmt', n:'Fuera de la ciudad'},
+              {k:'personal', chk:'xPersonal', amt:'xPersonalAmt', n:'Personal adicional'},
+              {k:'andamio', chk:'xAndamio', amt:'xAndamioAmt', n:'Andamio'}];
+function fixedExtras(){
+  return EXTRAS.filter(x=>$(x.chk).checked).map(x=>({k:x.k, n:x.n, v:pf($(x.amt).value)}));
+}
+function resetExtras(){
+  document.querySelectorAll('.addonChk').forEach(c=>c.checked=false);
+  $('xInst').checked=false; $('xInstRate').value=Number(cfg.instRate||0).toFixed(2);
+  EXTRAS.forEach(x=>{ $(x.chk).checked=false; $(x.amt).value=''; $(x.amt).disabled=true; });
+}
+
 function resetManual(){ manualPrice=false; calc(); }
 
 function addItem(){
@@ -705,20 +784,33 @@ function addItem(){
   const m=r.m;
   const isCama = m.unit==='cama';
   const both = isCama && $('inCamaBoth').checked;
-  const inst = m.unit==='m2' && $('inInst').checked;
-  let desc = m.unit==='m2'
-    ? `${$('inW').value}×${$('inH').value} m × ${r.qty}${inst?' + instalación':''}`
+  const isM2 = m.unit==='m2';
+  const addons = isM2 ? checkedAddons(m) : [];
+  const instOn = isM2 && $('xInst').checked;
+  const instRate = instOn ? pf($('xInstRate').value) : 0;
+  const extras = isCama ? [] : fixedExtras();
+  const tail = [
+    ...addons.map(a=>a.n.toLowerCase()),
+    ...(instOn?[`instalación ${fmt(instRate)}/m²`]:[]),
+    ...extras.map(x=>`${x.n.toLowerCase()} ${fmt(x.v)}`)
+  ];
+  let desc = isM2
+    ? `${$('inW').value}×${$('inH').value} m × ${r.qty}`
     : isCama
       ? `${$('inCamaW').value}×${$('inCamaH').value} cm × ${r.qty}${both?' (2 lados)':''}`
       : `× ${r.qty}`;
-  if(manualPrice && !(m.unit==='unidad' && !m.designer && !m.public)) desc+=' · precio manual';
+  if(tail.length) desc+=' + '+tail.join(' + ');
+  if(manualPrice) desc+=' · precio manual';
   const note=$('inNote').value.trim();
   const item = {
     matId:m.id, name:m.name, desc, note, d:r.d, p:r.p,
     unit:m.unit,
     w: isCama ? $('inCamaW').value : $('inW').value,
     h: isCama ? $('inCamaH').value : $('inH').value,
-    qty:r.qty, manual:manualPrice, inst: inst||undefined,
+    qty:r.qty, manual:manualPrice,
+    addons: addons.length ? addons.map(a=>a.n) : undefined,
+    instOn: instOn||undefined, instRate: instOn ? instRate : undefined,
+    extras: extras.length ? extras : undefined,
     both: isCama ? both : undefined,
     minCharge: isCama ? (pf($('inCamaMin').value)||0) : undefined
   };
@@ -731,7 +823,7 @@ function addItem(){
     toast('Ítem agregado ✓');
   }
   saveQuote(); renderQuote();
-  manualPrice=false; $('inNote').value=''; $('inInst').checked=false; calc();
+  manualPrice=false; $('inNote').value=''; resetExtras(); calc();
 }
 
 function editItem(i){
@@ -746,8 +838,12 @@ function editItem(i){
     $('inCamaMin').value = it.minCharge||'';
   }else{
     $('inW').value = it.w||''; $('inH').value = it.h||'';
-    $('inInst').checked = !!it.inst;
   }
+  resetExtras();
+  const mm = mats.find(m=>m.id===it.matId);
+  (it.addons||[]).forEach(n=>{ const i=(mm.addons||[]).findIndex(a=>a.n===n); const c=document.querySelector(`.addonChk[data-i="${i}"]`); if(c) c.checked=true; });
+  if(it.instOn || it.inst){ $('xInst').checked=true; $('xInstRate').value=Number(it.instOn?it.instRate:cfg.instRate||0).toFixed(2); }
+  (it.extras||[]).forEach(x=>{ const e=EXTRAS.find(y=>y.k===x.k); if(e){ $(e.chk).checked=true; $(e.amt).disabled=false; $(e.amt).value=x.v; } });
   $('inQty').value = it.qty || 1;
   $('inNote').value = it.note || '';
   manualPrice = !!it.manual;
@@ -771,9 +867,9 @@ function exitEditMode(){
   editItemIdx=null;
   $('btnAddItem').textContent = '+ Agregar ítem';
   const cancel=$('cancelEditBtn'); if(cancel) cancel.remove();
-  $('inW').value=''; $('inH').value=''; $('inQty').value=1; $('inNote').value=''; $('inInst').checked=false;
+  $('inW').value=''; $('inH').value=''; $('inQty').value=1; $('inNote').value='';
   $('inCamaW').value=''; $('inCamaH').value=''; $('inCamaBoth').checked=false;
-  manualPrice=false; onMatChange();
+  manualPrice=false; onMatChange(); resetExtras(); calc();
 }
 
 // Numeración de proforma — formato PR-AAAA-MMDD-Letra (una letra por proforma emitida ese día)
@@ -1110,7 +1206,7 @@ function renderMats(){
       </div>
       <div class="matbody" onclick="openMatModal(${m.id})">
         <b>${esc(m.name)}</b>
-        <small><span class="badge">${m.unit==='m2'?'por m²':m.unit==='cama'?`cama ${m.anchoCama}×${m.altoCama} cm`:'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}${m.unit==='cama'&&m.minPieza?` · mín ${fmt(m.minPieza)}/pieza`:''}</small>
+        <small><span class="badge">${m.unit==='m2'?'por m²':m.unit==='cama'?`cama ${m.anchoCama}×${m.altoCama} cm`:'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}${m.unit==='cama'&&m.minPieza?` · mín ${fmt(m.minPieza)}/pieza`:''}${m.addons&&m.addons.length?` · + ${m.addons.map(a=>esc(a.n.toLowerCase())).join(', ')}`:''}</small>
       </div>
       <div class="mp" onclick="openMatModal(${m.id})">
         <div class="d">${fmt(m.designer)}</div>
@@ -1136,15 +1232,22 @@ function openMatModal(id){
     $('mName').value=m.name; $('mUnit').value=m.unit;
     $('mDesigner').value=m.designer; $('mPublic').value=m.public;
     $('mMin').value=m.min||'';
+    $('addonsEdit').innerHTML=''; (m.addons||[]).forEach(a=>addAddonRow(a.n, a.v));
     $('mCamaW').value=m.anchoCama||''; $('mCamaH').value=m.altoCama||'';
     $('mCamaMin').value=m.minPieza!=null?m.minPieza:'';
   }else{
     $('mName').value=''; $('mUnit').value='m2';
     $('mDesigner').value=''; $('mPublic').value=''; $('mMin').value='';
+    $('addonsEdit').innerHTML='';
     $('mCamaW').value=''; $('mCamaH').value=''; $('mCamaMin').value='1.00';
   }
   onUnitChange();
   $('matModal').classList.add('open');
+}
+function addAddonRow(n, v){
+  const row=document.createElement('div'); row.className='addonedit';
+  row.innerHTML=`<input type="text" class="an" placeholder="Ej: Blanco" value="${esc(n)}"><input type="text" class="av" inputmode="decimal" placeholder="$/m²" value="${v===''?'':esc(v)}"><button type="button" onclick="this.parentNode.remove()">×</button>`;
+  $('addonsEdit').appendChild(row);
 }
 function closeMatModal(){ $('matModal').classList.remove('open'); }
 function onUnitChange(){
@@ -1160,17 +1263,21 @@ function saveMat(){
   const unit=$('mUnit').value;
   const designer=pf($('mDesigner').value);
   const pub=pf($('mPublic').value);
-  if(!name || (unit!=='unidad' && (designer<=0||pub<=0))){ toast('Completa nombre y precios'); return; }
+  if(!name || designer<=0 || pub<=0){ toast('Completa nombre y precios'); return; }
   if(unit==='cama' && (pf($('mCamaW').value)<=0 || pf($('mCamaH').value)<=0)){ toast('Completa el ancho y alto de la cama'); return; }
   const data={
     name, unit, designer, public:pub,
     min: unit==='m2' ? pf($('mMin').value) : 0,
     anchoCama: unit==='cama' ? pf($('mCamaW').value) : 0,
     altoCama: unit==='cama' ? pf($('mCamaH').value) : 0,
-    minPieza: unit==='cama' ? pf($('mCamaMin').value) : 0
+    minPieza: unit==='cama' ? pf($('mCamaMin').value) : 0,
+    addons: unit==='m2' ? [...document.querySelectorAll('#addonsEdit .addonedit')]
+      .map(r=>({n:r.querySelector('.an').value.trim(), v:pf(r.querySelector('.av').value)})).filter(a=>a.n) : []
   };
+  if(!data.addons.length) delete data.addons;
   if(editingId){
-    Object.assign(mats.find(x=>x.id===editingId), data);
+    const tgt=mats.find(x=>x.id===editingId); delete tgt.addons;
+    Object.assign(tgt, data);
   }else{
     data.id = Date.now();
     mats.push(data);
@@ -1196,7 +1303,12 @@ function toast(t){
 $('selMat').addEventListener('change',()=>{manualPrice=false; onMatChange();});
 ['inW','inH','inQty','inCamaW','inCamaH','inCamaMin'].forEach(id=>$(id).addEventListener('input',resetManual));
 $('inCamaBoth').addEventListener('change',resetManual);
-$('inInst').addEventListener('change',resetManual);
+$('xInst').addEventListener('change',resetManual);
+$('xInstRate').addEventListener('input',()=>{ $('xInst').checked=true; resetManual(); });
+EXTRAS.forEach(x=>{
+  $(x.chk).addEventListener('change',()=>{ $(x.amt).disabled=!$(x.chk).checked; if($(x.chk).checked) setTimeout(()=>$(x.amt).focus(),50); resetManual(); });
+  $(x.amt).addEventListener('input',resetManual);
+});
 $('priceVal').addEventListener('input',()=>{manualPrice=true; calc();});
 $('mUnit').addEventListener('change',onUnitChange);
 ['cfgName','cfgLoc','cfgRuc','cfgAddr','cfgPhone','cfgEmail','cfgPin','cfgInst'].forEach(id=>$(id).addEventListener('change',saveCfg));

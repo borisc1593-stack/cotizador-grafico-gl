@@ -73,10 +73,11 @@ Implementado 2026-09-16: nuevo `unit: 'cama'` en el modelo de materiales, junto 
 
 Precios dados por el usuario (diseñador / público, por m²): Lona 7/12, Lona traslúcida 12/22, Vinil 7/12, Vinil laminado 12/18, Microperforado 12/22, Letrero tipo pantalla 30/45, Letrero luminoso tubos LED 90/140.
 
-UV Roland por rollo (por m², mismo precio diseñador/público hasta que el usuario dé el de diseñador): solo CMYK 15, CMYK + blanco + barniz 20, solo blanco 15, solo barniz 15, impresión + corte + blanco + barniz 25.
+UV Roland por rollo: UN solo material "UV Roland rollo (CMYK)" a $15/m² con `addons` por m² que se marcan como casillas al cotizar: Blanco +5, Barniz +5, Corte +5, Troquelado +3 (editables en el modal del material, sección "Adicionales por m²"; cualquier material m² puede tener `addons`). Migración `cotizador_seed_2026_10_14b` reemplaza las 5 variantes viejas por este.
 
 Migración única con flag `cotizador_seed_2026_10_14`: actualiza precios por nombre e inserta los materiales nuevos (`NEW_MATS_V1`) sin duplicar ni revivir lo que el usuario borre después.
 
-### Instalación
-- Checkbox "Con instalación" en ítems por m²: suma `cfg.instRate` × m² cobrados (default $4/m², editable en Materiales). Aplica igual a diseñador y público. Se desmarca solo al agregar el ítem.
-- Traslado fuera de ciudad, personal adicional y andamio son materiales `unidad` con precio 0 ("Extra: …"): se cotizan escribiendo el valor en el precio.
+### Instalación y extras (bloque de casillas en Cotizar, para ítems m² y unidad)
+- "Instalación / tensado": por m², precargado con `cfg.instRate` (default $4, editable en Materiales y por ítem). Solo en ítems m².
+- "Fuera de la ciudad", "Personal adicional", "Andamio": monto fijo por ítem; el campo se habilita al marcar la casilla y va vacío (se escribe el valor).
+- Todo se suma igual a diseñador y público y queda escrito en la descripción del ítem (sale en la proforma). Se resetea al agregar el ítem y se restaura al editarlo. Los antiguos materiales "Extra: …" se eliminaron en la migración b.
