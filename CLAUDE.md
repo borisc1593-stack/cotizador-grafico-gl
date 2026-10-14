@@ -47,7 +47,7 @@ Equivale a $55.56/m² con los valores por defecto. Si cambia `precioCama`, el di
 ### Campos del ítem (en la pantalla Cotizar, cuando el material seleccionado es tipo `cama`)
 - ancho (cm), alto (cm), cantidad
 - checkbox "Imprimir ambos lados" → multiplica cantidad × 2 para el cálculo
-- campo opcional "Cobro mínimo" (default 0): si `precioPza` calculado es menor, se cobra el mínimo en su lugar
+- campo "Cobro mínimo por pieza": se guarda en el material (`minPieza`, default $1.00) y se precarga al cotizar (editable por ítem). Si `precioPza` calculado es menor, se cobra el mínimo en su lugar
 
 ### Salidas a mostrar
 - Precio unitario por pieza (2 decimales)

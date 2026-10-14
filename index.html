@@ -241,8 +241,9 @@ select:focus,input:focus{border-color:var(--magenta)}
         <input type="checkbox" id="inCamaBoth" style="width:18px;height:18px">
         Imprimir ambos lados (× 2)
       </label>
-      <label>Cobro mínimo por pieza ($) — opcional</label>
-      <input type="text" id="inCamaMin" inputmode="decimal" placeholder="Ej: 3.00">
+      <label>Cobro mínimo por pieza ($)</label>
+      <input type="text" id="inCamaMin" inputmode="decimal" placeholder="Ej: 1.00">
+      <div class="hint" style="text-align:left">Viene del material. Si la pieza sale más barata que esto, se cobra el mínimo.</div>
     </div>
 
     <label>Cantidad</label>
@@ -345,6 +346,8 @@ select:focus,input:focus{border-color:var(--magenta)}
         <div><label>Ancho de cama (cm)</label><input type="text" id="mCamaW" inputmode="decimal" placeholder="Ej: 90"></div>
         <div><label>Alto de cama (cm)</label><input type="text" id="mCamaH" inputmode="decimal" placeholder="Ej: 60"></div>
       </div>
+      <label>Cobro mínimo por pieza ($)</label>
+      <input type="text" id="mCamaMin" inputmode="decimal" placeholder="Ej: 1.00">
     </div>
     <div class="row">
       <div><label id="mDesignerLabel">Precio diseñador ($)</label><input type="text" id="mDesigner" inputmode="decimal" placeholder="0.00"></div>
@@ -413,7 +416,7 @@ const DEFAULT_MATS=[
   {id:10, name:'Roll-up banner 85x200 (completo)', unit:'unidad', designer:45.00, public:65.00, min:0},
   {id:11, name:'Tarjetas de presentación (millar)', unit:'unidad', designer:18.00, public:30.00, min:0},
   {id:12, name:'Volantes A5 full color (millar)', unit:'unidad', designer:35.00, public:55.00, min:0},
-  {id:14, name:'Impresión UV sobre PVC (cama plana)', unit:'cama', designer:30.00, public:30.00, anchoCama:90, altoCama:60},
+  {id:14, name:'Impresión UV cama plana', unit:'cama', designer:30.00, public:30.00, anchoCama:90, altoCama:60, minPieza:1.00},
 ];
 
 let mats = JSON.parse(localStorage.getItem(LS_MATS)||'null') || DEFAULT_MATS.slice();
@@ -422,6 +425,13 @@ if(!mats.some(m=>m.unit==='cama')){
   mats.push(Object.assign({}, DEFAULT_MATS.find(m=>m.unit==='cama'), {id:Date.now()}));
   localStorage.setItem(LS_MATS, JSON.stringify(mats));
 }
+// Migración: el material de cama plana guarda su cobro mínimo por pieza (default $1) y pierde el "sobre PVC" del nombre
+mats.forEach(m=>{
+  if(m.unit!=='cama') return;
+  if(m.minPieza==null) m.minPieza=1.00;
+  if(m.name==='Impresión UV sobre PVC (cama plana)') m.name='Impresión UV cama plana';
+});
+localStorage.setItem(LS_MATS, JSON.stringify(mats));
 let quote = JSON.parse(localStorage.getItem(LS_QUOTE)||'[]');
 let mode = localStorage.getItem(LS_MODE) || 'public';
 let ivaOn = localStorage.getItem(LS_IVA)==='1';
@@ -526,6 +536,7 @@ function onMatChange(){
   if(m.unit!=='cama') $('camaInfo').innerHTML='';
   $('areaInputs').style.display = m.unit==='m2' ? 'block':'none';
   $('camaInputs').style.display = m.unit==='cama' ? 'block':'none';
+  if(m.unit==='cama') $('inCamaMin').value = m.minPieza ? Number(m.minPieza).toFixed(2) : '';
   calc();
 }
 
@@ -707,8 +718,8 @@ function exitEditMode(){
   $('btnAddItem').textContent = '+ Agregar ítem';
   const cancel=$('cancelEditBtn'); if(cancel) cancel.remove();
   $('inW').value=''; $('inH').value=''; $('inQty').value=1; $('inNote').value='';
-  $('inCamaW').value=''; $('inCamaH').value=''; $('inCamaBoth').checked=false; $('inCamaMin').value='';
-  manualPrice=false; calc();
+  $('inCamaW').value=''; $('inCamaH').value=''; $('inCamaBoth').checked=false;
+  manualPrice=false; onMatChange();
 }
 
 // Numeración de proforma — formato PR-AAAA-MMDD-Letra (una letra por proforma emitida ese día)
@@ -1045,7 +1056,7 @@ function renderMats(){
       </div>
       <div class="matbody" onclick="openMatModal(${m.id})">
         <b>${esc(m.name)}</b>
-        <small><span class="badge">${m.unit==='m2'?'por m²':m.unit==='cama'?`cama ${m.anchoCama}×${m.altoCama} cm`:'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}</small>
+        <small><span class="badge">${m.unit==='m2'?'por m²':m.unit==='cama'?`cama ${m.anchoCama}×${m.altoCama} cm`:'por unidad'}</span>${m.min?` · mín ${m.min} m²`:''}${m.unit==='cama'&&m.minPieza?` · mín ${fmt(m.minPieza)}/pieza`:''}</small>
       </div>
       <div class="mp" onclick="openMatModal(${m.id})">
         <div class="d">${fmt(m.designer)}</div>
@@ -1072,10 +1083,11 @@ function openMatModal(id){
     $('mDesigner').value=m.designer; $('mPublic').value=m.public;
     $('mMin').value=m.min||'';
     $('mCamaW').value=m.anchoCama||''; $('mCamaH').value=m.altoCama||'';
+    $('mCamaMin').value=m.minPieza!=null?m.minPieza:'';
   }else{
     $('mName').value=''; $('mUnit').value='m2';
     $('mDesigner').value=''; $('mPublic').value=''; $('mMin').value='';
-    $('mCamaW').value=''; $('mCamaH').value='';
+    $('mCamaW').value=''; $('mCamaH').value=''; $('mCamaMin').value='1.00';
   }
   onUnitChange();
   $('matModal').classList.add('open');
@@ -1100,7 +1112,8 @@ function saveMat(){
     name, unit, designer, public:pub,
     min: unit==='m2' ? pf($('mMin').value) : 0,
     anchoCama: unit==='cama' ? pf($('mCamaW').value) : 0,
-    altoCama: unit==='cama' ? pf($('mCamaH').value) : 0
+    altoCama: unit==='cama' ? pf($('mCamaH').value) : 0,
+    minPieza: unit==='cama' ? pf($('mCamaMin').value) : 0
   };
   if(editingId){
     Object.assign(mats.find(x=>x.id===editingId), data);
