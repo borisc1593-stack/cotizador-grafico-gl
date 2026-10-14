@@ -65,3 +65,6 @@ Equivale a $55.56/m² con los valores por defecto. Si cambia `precioCama`, el di
 | 56 × 28 | $8.71 |
 
 Implementado 2026-09-16: nuevo `unit: 'cama'` en el modelo de materiales, junto a los ya existentes `m2` y `unidad`. Cada ítem de cotización guarda su propio `unit` (no solo `matId`) para que el desglose/impresión sigan siendo correctos aunque el material se edite o borre después.
+
+### Desglose visual (2026-10-13)
+`renderCamaInfo()` muestra en la pantalla Cotizar un dibujo a escala de la cama con las piezas y el paso a paso del precio (cama completa → % que ocupa la pieza → precio por pieza → × impresiones → total). Las "piezas por cama" prueban la pieza normal y girada y usan la que más entra (solo referencia; el precio sigue siendo proporcional al área).
