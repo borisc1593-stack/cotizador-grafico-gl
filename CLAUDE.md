@@ -81,3 +81,12 @@ Migración única con flag `cotizador_seed_2026_10_14`: actualiza precios por no
 - "Instalación / tensado": por m², precargado con `cfg.instRate` (default $4, editable en Materiales y por ítem). Solo en ítems m².
 - "Fuera de la ciudad", "Personal adicional", "Andamio": monto fijo por ítem; el campo se habilita al marcar la casilla y va vacío (se escribe el valor).
 - Todo se suma igual a diseñador y público y queda escrito en la descripción del ítem (sale en la proforma). Se resetea al agregar el ítem y se restaura al editarlo. Los antiguos materiales "Extra: …" se eliminaron en la migración b.
+
+## Cambios 2026-10-31
+
+- Adicionales por m² ahora tienen precio distinto diseñador/público: `{n, d, p}` (los viejos `{n, v}` se migran a d=p=v; helpers `adD`/`adP`). El modal del material tiene dos campos por adicional.
+- UV Roland: 12/18 por m² (solo CMYK). Blanco +3/+5, Barniz +3/+5, Corte +5/+5, Troquelado +3/+3.
+- UV cama plana: cama completa 20 diseñador / 30 público. Nueva casilla "Cobrar precio fijo por pieza" (acrílico del cliente, cartulina…): precio por impresión igual para ambos niveles, precargado del campo `precioPieza` del material (default $0.70).
+- Viniles impresos y PVC impreso/laminado traen el adicional Troquelado +3/+3.
+- Migración única `cotizador_seed_2026_10_31`.
+- `precios.html`: página aparte para que los jefes llenen la lista de precios y la manden por WhatsApp (texto). No toca el cotizador.

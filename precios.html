@@ -12,16 +12,17 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
 header img{height:46px}
 h1{font-size:19px;margin:0}
 .sub{color:var(--dim);font-size:14px;line-height:1.4;margin:10px 0 16px}
-.head,.row{display:grid;grid-template-columns:1fr 78px 78px 34px;gap:6px;align-items:center}
-.head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);padding:0 2px 6px}
-.head .d{color:var(--cyan)} .head .c{color:var(--magenta)}
-.row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.top{display:flex;gap:6px;align-items:center}
+.top input{flex:1;font-weight:600}
+.bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+.bot small{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--dim);margin:0 0 3px 2px}
+.bot small.d{color:var(--cyan)} .bot small.c{color:var(--magenta)}
 .row.changed{border-color:var(--yellow)}
-.name{display:flex;flex-direction:column;gap:4px;min-width:0}
 input,select{width:100%;background:#0f1218;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 8px;font-size:15px}
 input.num{text-align:right;font-weight:700}
 input.d{color:var(--cyan)} input.c{color:var(--magenta)}
-select{font-size:12px;padding:5px 6px;color:var(--dim)}
+select{font-size:13px;padding:9px 6px;color:var(--dim)}
 .del{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer}
 .btn{display:block;width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
 .add{background:transparent;border:1px dashed var(--line);color:var(--txt)}
@@ -38,7 +39,6 @@ select{font-size:12px;padding:5px 6px;color:var(--dim)}
 </header>
 <p class="sub">Revisa cada material y corrige el <b style="color:var(--cyan)">precio diseñador</b> y el <b style="color:var(--magenta)">precio cliente</b>. Si falta alguno, tócale a <b>＋ Agregar material</b>. Al terminar, aplasta el botón verde para mandarlo por WhatsApp.</p>
 
-<div class="head"><span>Material</span><span class="d">Diseñador $</span><span class="c">Cliente $</span><span></span></div>
 <div id="list"></div>
 <button class="btn add" onclick="addRow()">＋ Agregar material</button>
 <button class="btn copy" onclick="copyText()">📋 Copiar lista</button>
@@ -49,7 +49,7 @@ select{font-size:12px;padding:5px 6px;color:var(--dim)}
 </div>
 
 <script>
-const UNITS={m2:'por m²',unidad:'por unidad',cama:'cama completa'};
+const UNITS={m2:'por m²',unidad:'por unidad',pieza:'por pieza',cama:'cama completa'};
 const BASE=[
   ['Lona 13oz impresa','m2',7,12],
   ['Lona traslúcida','m2',12,22],
@@ -65,18 +65,20 @@ const BASE=[
   ['Roll-up banner 85x200 (completo)','unidad',45,65],
   ['Tarjetas de presentación (millar)','unidad',18,30],
   ['Volantes A5 full color (millar)','unidad',35,55],
-  ['Impresión UV cama plana (90x60)','cama',30,30],
-  ['UV Roland rollo (CMYK)','m2',15,15],
-  ['Roland adicional: Blanco','m2',5,5],
-  ['Roland adicional: Barniz','m2',5,5],
+  ['Impresión UV cama plana (90x60)','cama',20,30],
+  ['Impresión UV por pieza (acrílico del cliente, cartulina)','pieza',0.70,0.70],
+  ['UV Roland rollo (solo CMYK)','m2',12,18],
+  ['Roland adicional: Blanco','m2',3,5],
+  ['Roland adicional: Barniz','m2',3,5],
   ['Roland adicional: Corte','m2',5,5],
   ['Roland adicional: Troquelado','m2',3,3],
+  ['Adicional vinil / PVC: Troquelado','m2',3,3],
   ['Letrero tipo pantalla','m2',30,45],
   ['Letrero luminoso tubos LED','m2',90,140],
   ['Instalación / tensado','m2',4,4],
 ].map(([n,u,d,c])=>({n,u,d,c,o:[n,u,d,c].join('|')}));
 
-const KEY='gl_lista_precios_v1';
+const KEY='gl_lista_precios_v2';
 let rows;
 try{ rows=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
 if(!Array.isArray(rows)) rows=BASE.map(r=>({...r}));
@@ -90,15 +92,17 @@ function render(){
   const L=document.getElementById('list');
   L.innerHTML=rows.map((r,i)=>`
     <div class="row ${changed(r)?'changed':''}">
-      <div class="name">
+      <div class="top">
         <input value="${esc(r.n)}" placeholder="Nombre del material" oninput="upd(${i},'n',this.value)">
-        <select onchange="upd(${i},'u',this.value)">
-          ${Object.entries(UNITS).map(([k,v])=>`<option value="${k}" ${r.u===k?'selected':''}>${v}</option>`).join('')}
-        </select>
+        <button class="del" onclick="delRow(${i})" title="Quitar">✕</button>
       </div>
-      <input class="num d" inputmode="decimal" value="${esc(r.d)}" oninput="upd(${i},'d',this.value)">
-      <input class="num c" inputmode="decimal" value="${esc(r.c)}" oninput="upd(${i},'c',this.value)">
-      <button class="del" onclick="delRow(${i})" title="Quitar">✕</button>
+      <div class="bot">
+        <div><small>Se cobra</small><select onchange="upd(${i},'u',this.value)">
+          ${Object.entries(UNITS).map(([k,v])=>`<option value="${k}" ${r.u===k?'selected':''}>${v}</option>`).join('')}
+        </select></div>
+        <div><small class="d">Diseñador $</small><input class="num d" inputmode="decimal" value="${esc(r.d)}" oninput="upd(${i},'d',this.value)"></div>
+        <div><small class="c">Cliente $</small><input class="num c" inputmode="decimal" value="${esc(r.c)}" oninput="upd(${i},'c',this.value)"></div>
+      </div>
     </div>`).join('');
 }
 function upd(i,k,v){
