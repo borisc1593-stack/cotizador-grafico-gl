@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de precios · Gráficas Liz</title>
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--txt:#eef1f6;--dim:#9aa3b2;--cyan:#22d3ee;--magenta:#f43f7a;--yellow:#facc15;--green:#25d366}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:16px 14px 120px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+header img{height:46px}
+h1{font-size:19px;margin:0}
+.sub{color:var(--dim);font-size:14px;line-height:1.4;margin:10px 0 16px}
+.head,.row{display:grid;grid-template-columns:1fr 78px 78px 34px;gap:6px;align-items:center}
+.head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);padding:0 2px 6px}
+.head .d{color:var(--cyan)} .head .c{color:var(--magenta)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px}
+.row.changed{border-color:var(--yellow)}
+.name{display:flex;flex-direction:column;gap:4px;min-width:0}
+input,select{width:100%;background:#0f1218;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 8px;font-size:15px}
+input.num{text-align:right;font-weight:700}
+input.d{color:var(--cyan)} input.c{color:var(--magenta)}
+select{font-size:12px;padding:5px 6px;color:var(--dim)}
+.del{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
+.add{background:transparent;border:1px dashed var(--line);color:var(--txt)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:20px 14px 14px}
+.wa{background:var(--green);color:#062b14;margin:0}
+.copy{background:var(--card);color:var(--txt);border:1px solid var(--line)}
+.note{font-size:12px;color:var(--dim);text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <img src="logo-graficas-liz.png" alt="Gráficas Liz" onerror="this.style.display='none'">
+  <h1>Lista de precios</h1>
+</header>
+<p class="sub">Revisa cada material y corrige el <b style="color:var(--cyan)">precio diseñador</b> y el <b style="color:var(--magenta)">precio cliente</b>. Si falta alguno, tócale a <b>＋ Agregar material</b>. Al terminar, aplasta el botón verde para mandarlo por WhatsApp.</p>
+
+<div class="head"><span>Material</span><span class="d">Diseñador $</span><span class="c">Cliente $</span><span></span></div>
+<div id="list"></div>
+<button class="btn add" onclick="addRow()">＋ Agregar material</button>
+<button class="btn copy" onclick="copyText()">📋 Copiar lista</button>
+<button class="btn copy" onclick="resetAll()" style="font-size:13px;padding:10px;color:var(--dim)">Volver a la lista original</button>
+
+<div class="bar">
+  <button class="btn wa" onclick="sendWA()">📲 Enviar por WhatsApp</button>
+</div>
+
+<script>
+const UNITS={m2:'por m²',unidad:'por unidad',cama:'cama completa'};
+const BASE=[
+  ['Lona 13oz impresa','m2',7,12],
+  ['Lona traslúcida','m2',12,22],
+  ['Vinil adhesivo impreso','m2',7,12],
+  ['Vinil adhesivo + laminado','m2',12,18],
+  ['Vinil microperforado','m2',12,22],
+  ['Vinil transparente impreso','m2',10,17],
+  ['Vinil de corte (rotulación)','m2',9,16],
+  ['PVC / Sintra 3mm impreso','m2',18,30],
+  ['PVC / Sintra 3mm laminado','m2',21,34],
+  ['Acrílico 3mm (corte láser)','m2',45,70],
+  ['MDF 3mm corte láser','m2',15,25],
+  ['Roll-up banner 85x200 (completo)','unidad',45,65],
+  ['Tarjetas de presentación (millar)','unidad',18,30],
+  ['Volantes A5 full color (millar)','unidad',35,55],
+  ['Impresión UV cama plana (90x60)','cama',30,30],
+  ['UV Roland rollo (CMYK)','m2',15,15],
+  ['Roland adicional: Blanco','m2',5,5],
+  ['Roland adicional: Barniz','m2',5,5],
+  ['Roland adicional: Corte','m2',5,5],
+  ['Roland adicional: Troquelado','m2',3,3],
+  ['Letrero tipo pantalla','m2',30,45],
+  ['Letrero luminoso tubos LED','m2',90,140],
+  ['Instalación / tensado','m2',4,4],
+].map(([n,u,d,c])=>({n,u,d,c,o:[n,u,d,c].join('|')}));
+
+const KEY='gl_lista_precios_v1';
+let rows;
+try{ rows=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+if(!Array.isArray(rows)) rows=BASE.map(r=>({...r}));
+
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(rows)); }catch(e){} };
+const fmt=v=>{ const x=parseFloat(String(v).replace(',','.')); return isNaN(x)?'—':(Math.round(x*100)/100).toString(); };
+const changed=r=>!r.o || [r.n,r.u,r.d,r.c].join('|')!==r.o;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+function render(){
+  const L=document.getElementById('list');
+  L.innerHTML=rows.map((r,i)=>`
+    <div class="row ${changed(r)?'changed':''}">
+      <div class="name">
+        <input value="${esc(r.n)}" placeholder="Nombre del material" oninput="upd(${i},'n',this.value)">
+        <select onchange="upd(${i},'u',this.value)">
+          ${Object.entries(UNITS).map(([k,v])=>`<option value="${k}" ${r.u===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <input class="num d" inputmode="decimal" value="${esc(r.d)}" oninput="upd(${i},'d',this.value)">
+      <input class="num c" inputmode="decimal" value="${esc(r.c)}" oninput="upd(${i},'c',this.value)">
+      <button class="del" onclick="delRow(${i})" title="Quitar">✕</button>
+    </div>`).join('');
+}
+function upd(i,k,v){
+  rows[i][k]=v; save();
+  document.querySelectorAll('.row')[i].classList.toggle('changed',changed(rows[i]));
+}
+function addRow(){
+  rows.push({n:'',u:'m2',d:'',c:'',o:null}); save(); render();
+  const ins=document.querySelectorAll('.row'); ins[ins.length-1].querySelector('input').focus();
+}
+function delRow(i){
+  if(!confirm('¿Quitar "'+(rows[i].n||'este material')+'" de la lista?')) return;
+  rows.splice(i,1); save(); render();
+}
+function resetAll(){
+  if(!confirm('Se borran los cambios y vuelve la lista original. ¿Seguro?')) return;
+  rows=BASE.map(r=>({...r})); save(); render();
+}
+function buildText(){
+  const lines=rows.filter(r=>r.n.trim()).map(r=>
+    `${changed(r)?'✏️ ':'• '}${r.n.trim()} (${UNITS[r.u]}): diseñador $${fmt(r.d)} / cliente $${fmt(r.c)}`);
+  const quitados=BASE.filter(b=>!rows.some(r=>r.o===b.o || r.n.trim()===b.n)).map(b=>'❌ '+b.n);
+  return '*LISTA DE PRECIOS · GRÁFICAS LIZ*\n(✏️ = cambiado o nuevo)\n\n'+lines.join('\n')+
+    (quitados.length?'\n\n*Quitar de la lista:*\n'+quitados.join('\n'):'');
+}
+function sendWA(){ window.open('https://wa.me/?text='+encodeURIComponent(buildText()),'_blank'); }
+function copyText(){
+  const t=buildText();
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(
+    ()=>alert('Lista copiada. Pégala en WhatsApp.'),
+    ()=>prompt('Copia este texto:',t));
+}
+render();
+</script>
+</body>
+</html>
